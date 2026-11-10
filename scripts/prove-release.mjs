@@ -163,7 +163,10 @@ for (const [name, type] of phones) {
             const workers = page.workers().filter(worker => /\/standalone\/serverWorker[^/]*\.js$/u.test(new URL(worker.url()).pathname));
             if (workers.length !== 1) throw new Error('Expected one actual standalone server worker to profile');
             const attempt = process.argv.includes('--grid-only') ? 'grid' : 'full';
-            stopProfile = await profileReleaseWorker(browser, workers[0].url(), `tmp/release-worker-profile/${version.build}-${attempt}-worker.json`, { durationMs: 210_000, page });
+            // The independent failure diagnosis samples a bounded native
+            // window; its actual road proof still runs the full 210 seconds.
+            // Full-window traces repeatedly miss their unchanged drain cap.
+            stopProfile = await profileReleaseWorker(browser, workers[0].url(), `tmp/release-worker-profile/${version.build}-${attempt}-worker.json`, { durationMs: attempt === 'grid' ? 15_000 : 210_000, page });
           }
           };
           let failure;
