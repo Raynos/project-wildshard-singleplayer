@@ -238,7 +238,7 @@ jobs:
         run: |
           mkdir -p .vercel
           node -e 'require("fs").writeFileSync(".vercel/project.json",JSON.stringify({projectId:process.env.VERCEL_PROJECT_ID,orgId:process.env.VERCEL_ORG_ID}))'
-          node scripts/prove-release.mjs "$STAGED_URL" --vercel --existing-bypass "--browser=$PHONE" --profile-worker
+          node scripts/prove-release.mjs "$STAGED_URL" --vercel --existing-bypass "--browser=$PHONE"
       # An earlier strict boot failure must remain red. Still collect the
       # independent real grid path so it cannot hide the road diagnosis.
       - name: Diagnose grid after an earlier refusal
