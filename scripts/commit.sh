@@ -186,7 +186,13 @@ try:
         shutil.copy2(Path(common) / "index", index)
         candidate_env = {**base_env, "GIT_INDEX_FILE": str(index)}
         git("read-tree", "--reset", parent, env=candidate_env)
-        entries = git("ls-files", "-z", env=candidate_env)
+        # The train's pin-only clone is sparse and blobless. These unrelated
+        # entries already name HEAD; clearing their sparse flags makes Git
+        # hydrate every excluded asset at write-tree. Named flags still clear.
+        sparse_pin_only = paths == ["engine.pin.json"] and subprocess.run(
+            ["git", "config", "--bool", "core.sparseCheckout"], env=candidate_env,
+            capture_output=True, text=True).stdout.strip() == "true"
+        entries = git("ls-files", "-z", *(["--", *paths] if sparse_pin_only else []), env=candidate_env)
         for flag in ["--no-assume-unchanged", "--no-skip-worktree", "--no-fsmonitor-valid"]:
             git("update-index", flag, "-z", "--stdin", input=entries, env=candidate_env)
         # Regeneration reads the checked candidate, including semantic patches,
