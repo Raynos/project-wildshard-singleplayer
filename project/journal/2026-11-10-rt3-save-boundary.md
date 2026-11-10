@@ -69,3 +69,26 @@ false acknowledgement. The defect is therefore intermittent, not repaired.
 Its promotion correctly refuses because newer shell 0649b30 is already on
 main. Run 42821525583 carries the value-free failure observations; the
 earlier red and unchanged limits remain recorded.
+
+The later controlled storage proof is scripts/release-indexed-quota-proof.mjs,
+outside hooks. It bundles the actual engine API supplied by the caller.
+The same loopback-only native 3 MiB quota and measured download body make
+baseline dc26bf8 return three true/nine false with QuotaExceededError;
+the new implementation returns twelve true and both documents read back
+exactly. The controlled override never targets a game/deployment origin.
+Web Storage Estimate pads this Chromium's quota by 10 GiB, so the proof
+uses the actual native CDP quota and usage rather than that padded value.
+
+The proposed whole-cache unlink did not free charged bytes while a live
+Cache handle retained them; that red prototype was not published. Known
+resource entry deletion does free them. Review's new retry-vs-delete race
+was reproduced on the uncommitted recovery prototype and fixed with full
+per-key serialization. Actual native deletion ordering, close draining,
+and retained real download facts after clearing the native timing buffer
+all pass. These are real storage-edge controls, not retrospective evidence
+of the unobserved historical hosted failure.
+
+Engine source 63235ed is in normal queue 190, with J206 MUST and SHOULD
+closed. The next exact green producer and hosted journey must still prove
+the integrated source. No product cap, proof oracle, deadline, backend,
+save epoch, database, identity or last good progress is changed or wiped.
