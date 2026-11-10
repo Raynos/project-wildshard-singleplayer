@@ -6,7 +6,25 @@ import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { publishProductFiles } from '../scripts/publish-product-files.mjs';
+import { validateReleaseCopy } from '../scripts/release-play.mjs';
 const root = resolve(import.meta.dirname, '..');
+test('native diagnostics copy recognizes both declared privacy projections without losing completeness', () => {
+  for (const exportPrivacy of ['urls-and-free-text-removed', 'own-paths-other-urls-and-free-text-removed']) {
+    const entries = [{ id: 1, start: 0, end: 12 }, { id: 2, start: 8, end: null }];
+    const timeline = { version: 1, exportPrivacy, entries, resources: [{ url: exportPrivacy.startsWith('own-') ? '/b/abc/main.js' : 'resource-1' }], counters: { files: { loaded: 2 } }, realms: [{ realm: 'page' }] };
+    const text = 'Wildshard boot diagnostics\ntimeline (LS1):\n' + JSON.stringify(timeline);
+    const copied = { receipt: { text, success: true, expected: { entries, resources: 1, counters: 1, realms: 1 } }, clipboard: text, label: 'Copied' };
+    assert.equal(validateReleaseCopy(copied), true, exportPrivacy);
+    assert.equal(validateReleaseCopy({ ...copied, receipt: { ...copied.receipt, success: false } }), false, 'a native write refusal cannot pass');
+    assert.equal(validateReleaseCopy({ ...copied, clipboard: text.slice(0, -1) }), false, 'native clipboard bytes must match');
+    assert.equal(validateReleaseCopy({ ...copied, label: 'Copy failed' }), false, 'the native UI must acknowledge success');
+    const changed = delta => { const next = 'Wildshard boot diagnostics\ntimeline (LS1):\n' + JSON.stringify({ ...timeline, ...delta }); return { ...copied, receipt: { ...copied.receipt, text: next }, clipboard: next }; };
+    for (const delta of [{ version: 2 }, { exportPrivacy: 'unrecognized' }, { entries: entries.slice(0, 1) }, { entries: [{ ...entries[0], end: 13 }, entries[1]] }, { resources: [] }, { counters: {} }, { realms: [] }]) {
+      assert.equal(validateReleaseCopy(changed(delta)), false, JSON.stringify(delta));
+    }
+    assert.throws(() => validateReleaseCopy({ ...copied, receipt: { ...copied.receipt, text: text.slice(0, -1) }, clipboard: text.slice(0, -1) }), SyntaxError);
+  }
+});
 function fixture(run) {
   mkdirSync(join(root, 'tmp'), { recursive: true });
   const cwd = mkdtempSync(join(root, 'tmp/shell-release-'));

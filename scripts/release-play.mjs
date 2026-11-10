@@ -1,4 +1,16 @@
 // Manual staged/production play evidence. Only real controls and read-only probes.
+export function validateReleaseCopy({ receipt, clipboard, label }) {
+  if (!receipt.success || clipboard !== receipt.text || label !== 'Copied') return false;
+  const marker = 'timeline (LS1):\n', at = receipt.text.indexOf(marker);
+  if (at === -1) return false;
+  const value = JSON.parse(receipt.text.slice(at + marker.length));
+  return value.version === 1
+    && ['urls-and-free-text-removed', 'own-paths-other-urls-and-free-text-removed'].includes(value.exportPrivacy)
+    && JSON.stringify(value.entries.map(({ id, start, end }) => ({ id, start, end }))) === JSON.stringify(receipt.expected.entries)
+    && value.resources.length === receipt.expected.resources && Object.keys(value.counters).length === receipt.expected.counters
+    && value.realms.length === receipt.expected.realms;
+}
+
 export function recordFirstReleaseCard() {
   let seen = false;
   const observe = () => {
@@ -66,18 +78,9 @@ export async function proveLoadingCard(page, slug, label, direct = false) {
   });
   await page.locator('.ws-load-copy').click();
   await page.waitForFunction(() => window.__releaseCopy?.settled === true);
-  const copied = await page.evaluate(async () => {
-    const receipt = window.__releaseCopy;
-    if (!receipt.success || await navigator.clipboard.readText() !== receipt.text) return false;
-    const marker = 'timeline (LS1):\n', at = receipt.text.indexOf(marker);
-    if (at === -1) return false;
-    const value = JSON.parse(receipt.text.slice(at + marker.length));
-    return value.exportPrivacy === 'urls-and-free-text-removed'
-      && JSON.stringify(value.entries.map(({ id, start, end }) => ({ id, start, end }))) === JSON.stringify(receipt.expected.entries)
-      && value.resources.length === receipt.expected.resources && Object.keys(value.counters).length === receipt.expected.counters
-      && value.realms.length === receipt.expected.realms && document.querySelector('.ws-load-copy')?.textContent === 'Copied';
-  });
-  if (!copied) throw new Error(`${label}: complete native diagnostics copy failed`);
+  const copied = await page.evaluate(async () => ({ receipt: window.__releaseCopy,
+    clipboard: await navigator.clipboard.readText(), label: document.querySelector('.ws-load-copy')?.textContent }));
+  if (!validateReleaseCopy(copied)) throw new Error(`${label}: complete native diagnostics copy failed`);
   console.log('PASS loading card', label, JSON.stringify(report), 'complete safe native clipboard');
   await page.locator('.ws-load-play').click();
   await page.waitForFunction(() => document.querySelector('.ws-load') === null);
