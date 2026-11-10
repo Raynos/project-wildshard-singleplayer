@@ -100,3 +100,23 @@ The exact native cross-handle test is red, so the owning shell release is
 held at already-live 0649b30 while an atomic retry precondition is built
 forward. This is not an engine publication hold or a rollback. The next
 candidate must preserve the newer native value before promotion resumes.
+
+The atomic follow-up is engine 29a6f35, locally committed through the
+normal hook after a separate J206 review found no MUST for the stated
+value-based recovery contract. The same native two-handle test changes
+from resurrection to old false/new true with absence preserved. Twelve
+ordinary pressure writes, retained timing facts and close draining still
+pass. The manual race fixture now waits for the actual first recovery
+entry, rather than assuming how many writes spend the browser's cached
+space reservation. Default current-source execution requires durable
+success; historical baselines remain explicit negative controls.
+
+The owning promotion hold is public shell 8536230. Production remains
+0649b30-mwaprv9e, epoch one. The normal changed-pin controller 42832209327
+is green and its real pin commit costs 416 ms instead of 275 seconds,
+with every ordinary hook and the original five-minute job cap retained.
+Its first pin targets 6c1 and must not promote: that source has the proven
+cross-handle regression. Resume the train only on the reviewed atomic
+follow-up after full queue, exact CI/Ring 1 and complete staged proofs.
+RT3–RT5 and the plan's whole-row Progress remain open; no success is
+manufactured from this checkpoint.

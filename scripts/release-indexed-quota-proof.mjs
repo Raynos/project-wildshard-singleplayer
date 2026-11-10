@@ -54,17 +54,22 @@ try{
   if(race){
    // Exhaust the native reservation without changing the quota. Hold the
    // actual recovery delete while a later delete of the same save is queued.
-   for(let i=0;i<3;i++)writes.push(await api.write('candidate',payload+':warm'+i));
-   const second=cross?await globalThis.proof.openIndexedSaves('native-pressure'):api;
    const original=Cache.prototype.delete;let entered,release;
    const waiting=new Promise(resolve=>{entered=resolve;}),allowed=new Promise(resolve=>{release=resolve;});
    Cache.prototype.delete=async function(...args){entered();await allowed;return Reflect.apply(original,this,args);};
    try{
-    const older=api.write('candidate',payload+':old-retry');await waiting;
+    let older;
+    for(let i=0;i<12;i++){
+     const attempt=api.write('candidate',payload+':retry'+i);
+     const event=await Promise.race([attempt.then(ok=>({kind:'saved',ok})),waiting.then(()=>({kind:'recovery'}))]);
+     if(event.kind==='recovery'){older=attempt;break;}writes.push(event.ok);
+    }
+    if(older===undefined)throw Error('Native quota recovery was not reached');
+    const second=cross?await globalThis.proof.openIndexedSaves('native-pressure'):api;
     const newer=second.write('candidate',null);
     await new Promise((resolve,reject)=>{const r=db.transaction('saves').objectStore('saves').get('candidate');r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);});
-    release();raceResult=await Promise.all([older,newer]);
-   }finally{release();Cache.prototype.delete=original;if(cross)second.close();}
+    release();raceResult=await Promise.all([older,newer]);if(cross)second.close();
+   }finally{release();Cache.prototype.delete=original;}
   }
   // Native IDB may spend a cached space reservation before refreshing the
   // origin's shared usage. Bounded updates exercise that real reservation.
@@ -80,7 +85,7 @@ try{
  assert.equal(result.lastGoodKept,true);
  if(close)assert.deepEqual(result.drain,{writes:[true,true],value:'second'});
  if(race){assert.deepEqual(result.raceResult,cross?[false,true]:[true,true]);assert.equal(result.candidateAbsent,true,'Older recovery must never resurrect a newer delete');}
- else if(process.argv.includes('--expect-save')){assert.ok(result.writes.every(Boolean));assert.equal(result.candidateDurable,true);}
+ else if(process.argv.includes('--expect-save')||(baseline===undefined&&prototype===undefined)){assert.ok(result.writes.every(Boolean));assert.equal(result.candidateDurable,true);}
  else{assert.ok(result.writes.includes(false));assert.equal(result.candidateDurable,false);assert.ok(result.faults.rows.some(row=>row.error==='QuotaExceededError'));}
  await session.send('Storage.overrideQuotaForOrigin',{origin});await session.detach();session=undefined;await context.close();
 }finally{clearTimeout(timer);try{await session?.detach();}finally{try{await browser?.close();}finally{await new Promise(resolve=>server.close(resolve));}}}
