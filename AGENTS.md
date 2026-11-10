@@ -1,10 +1,18 @@
 # AGENTS.md
 
+> Human-written section (Jake). Empty until Jake writes it; until then the agent section below holds the working rules.
+
+<!-- agents-below: everything under this line is agent-written (Claude, Codex); agents never edit above it (J241) -->
+
+## Agent-written
+
+> Written by: Claude and Codex (agents). Jake gardens this; it may be purged or promoted above the line.
+
 The rules for every agent in this repo, one or two lines each. The why, the incidents and the how-tos live in
 `docs/process/`: read the linked file before you work in its area. Jake's own words outrank anything here. What every
 file in `docs/` is: [docs/README.md](docs/README.md).
 
-## Jake: how he plays, steers and judges → [docs/process/JAKE.md](docs/process/JAKE.md)
+### Jake: how he plays, steers and judges → [docs/process/JAKE.md](docs/process/JAKE.md)
 
 - He plays on an **iPhone 17 Pro as a portrait Safari home-screen PWA**. Every screenshot you send him is iPhone
   portrait. Low Power Mode caps it at 30 fps; the phone throttles ~2× within minutes.
@@ -21,7 +29,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   Only non-commercial / research-only terms matter, and only for shipped assets (fine for mockups).
 - Where the project started: [docs/ORIGINAL-BRIEF.md](docs/ORIGINAL-BRIEF.md) (history, not the current direction).
 
-## Asks, plans, leftovers, handoffs → [docs/process/ASKS.md](docs/process/ASKS.md)
+### Asks, plans, leftovers, handoffs → [docs/process/ASKS.md](docs/process/ASKS.md)
 
 - **An ask is a receipt of a request for work from Jake.** `f=$(scripts/ask-new.sh "<his words>")` before you start,
   and use the id it prints. A question answered in chat gets no file.
@@ -50,7 +58,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **Council rounds** ([docs/process/COUNCIL.md](docs/process/COUNCIL.md)): three fresh seats a round, four rounds at
   most; the round files are archived the day the council ends.
 
-## Engine layers → [docs/ENGINE.md](docs/ENGINE.md), [docs/SHARDS.md](docs/SHARDS.md)
+### Engine layers → [docs/ENGINE.md](docs/ENGINE.md), [docs/SHARDS.md](docs/SHARDS.md)
 
 - Layers: `src/engine/` (`@wildshard/engine`) → `src/game/` (`@wildshard/game`) → `src/sdk/` (`@wildshard/sdk`) →
   (`src/commons/`, `@wildshard/commons`: build-time packs) → `src/shards/<slug>/`. Imports point down only; a shard never
@@ -76,7 +84,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   graph counts and debt from clean HEAD (SF6b; GIT.md). A new shard starts from `src/shards/_template/` per SHARDS.md.
 - **The E357 lock** was lifted when GAME-NORMALIZATION archived on 2026-10-01; its obsolete hook and policy are retired.
 
-## Version control → [docs/process/GIT.md](docs/process/GIT.md)
+### Version control → [docs/process/GIT.md](docs/process/GIT.md)
 
 - **Commit early and often with small commits** (Jake, 2026-10-11, E476, from project-wildshard-meta). Leave nothing
   staged in the shared index, and keep captures and generated outputs out of the tree until they're committed.
@@ -108,7 +116,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   (E451); work that won't land is deleted, not parked. A private-index landing deletes its scratch ref the moment it
   lands. Download, memory, graph CPU cost and exact parity are never reasons to hold work back (G438).
 
-## The shared Mac → [docs/process/MACHINE.md](docs/process/MACHINE.md)
+### The shared Mac → [docs/process/MACHINE.md](docs/process/MACHINE.md)
 
 - **At most 4 game browsers machine-wide**: every Playwright script through `scripts/browser-lane.sh`, every new
   agent-browser session after `scripts/browser-lane.sh wait`; close it before you report. Mute every test browser;
@@ -130,7 +138,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   Node's compile cache lives outside `$TMPDIR`. Pre-commit warns past 500k files in `/tmp` or `$TMPDIR`
   (each counted; `scripts/boot-temp-warn.sh`).
 
-## Subagents → [docs/process/SUBAGENTS.md](docs/process/SUBAGENTS.md)
+### Subagents → [docs/process/SUBAGENTS.md](docs/process/SUBAGENTS.md)
 
 - The main agent builds by default. **At most 3 live subagents, no forks**, one job each, capped at **400k context,
   90 min, ~200 turns**; reports ≤ 40 lines. Never recycle a finished one. Long waits belong to the main agent.
@@ -155,7 +163,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   boundary and pushes back on churn, including from the plan agent; only a broken build, a red deploy or Jake's explicit
   "stop" may interrupt.
 
-## Variants: no URL switches, ever → [docs/process/DEBUG-TOGGLES.md](docs/process/DEBUG-TOGGLES.md)
+### Variants: no URL switches, ever → [docs/process/DEBUG-TOGGLES.md](docs/process/DEBUG-TOGGLES.md)
 
 - **Every variant, look, tuning value or toggle goes in pause ▸ Settings ▸ Debug**: a shard's own `ctx.debugRow`, or
   an engine-wide registry row. Never a `?foo=` param; `wildshard/no-url-switch` and `lint/url-params.json` enforce it.
@@ -166,7 +174,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   build (only what's nearly ready to share with friends and family); Developer **on** is Jake's view of everything
   unfinished he's still steering. New, unfinished work goes behind Developer, never straight to the public build.
 
-## Local models and assets → [docs/process/LOCAL-MODELS.md](docs/process/LOCAL-MODELS.md)
+### Local models and assets → [docs/process/LOCAL-MODELS.md](docs/process/LOCAL-MODELS.md)
 
 - Music is **MiniMax Music 3**; every SFX is generated with **MOSS-SoundEffect v2** and **Stable Audio 3 Medium** and
   the better take ships; 3D is **TRELLIS.2** or **Hunyuan3D-2**, whichever is better. Credits are licence conditions.
@@ -175,7 +183,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **Blender: the script is the source, the GLB is committed, a `.blend` never is** (`scripts/blender/build.sh`).
 - A shard's generated assets go in its own folders (`public/assets/<slug>/`, `music/<slug>/`, `sfx/<slug>/`).
 
-## Mockups and boards → [docs/process/MOCKUPS.md](docs/process/MOCKUPS.md)
+### Mockups and boards → [docs/process/MOCKUPS.md](docs/process/MOCKUPS.md)
 
 - Two engines: **Qwen-Image-2.1 turbo** locally for fast iteration (`scripts/mockup-local.sh`), **codex `image_gen`**
   for fidelity. Start from a live capture; quote every UI string; read every image before you send it.
@@ -187,7 +195,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   the bar (a camera over a still is not a trailer), never a montage of unrelated clips, and promise only what the game
   can ship.
 
-## HUD changes are coordinated over herdr (E332)
+### HUD changes are coordinated over herdr (E332)
 
 - One HUD is shared by every shard: `src/engine/player/TouchControls.ts`, `src/engine/ui/` (HUD, hudSlots,
   WeaponStrip, RideHUD, FirstHints, Minimap, Map) and `src/engine/ui/styles/` (touch, game, ride).
@@ -197,7 +205,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - The current layout is E319: the left edge is HORSE · HOVER · SWAP ring; VITALS hide at full health; LOCK shows only
   with a target.
 
-## Rendering and physics → [docs/process/RENDERING.md](docs/process/RENDERING.md)
+### Rendering and physics → [docs/process/RENDERING.md](docs/process/RENDERING.md)
 
 - **No facade multi-draw anywhere**, on any shard, tier or platform (E271 / E272): it killed the iPhone. Use
   instancing; keep `scripts/test-facade-instancing.mjs` passing.
@@ -206,7 +214,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   registering colliders (`ctx.piece` / `app.registry.add`); moving things run in the fixed step. After changing
   colliders, `node scripts/physics-baseline.mjs --no-build --mode=walk` must report 0 stuck.
 
-## Goldens: re-capture before you land a look change → [docs/process/GOLDENS.md](docs/process/GOLDENS.md)
+### Goldens: re-capture before you land a look change → [docs/process/GOLDENS.md](docs/process/GOLDENS.md)
 
 - Every shard has **24 SHARDFILE goldens** (`art/shardfile-goldens/<shard>/24/`, the look to hold) and 24 frozen
   LEGACY ones; open plots have 8 views each (`art/open-plots/golden-*/`). `ls` them before saying a shard has none.
@@ -217,7 +225,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - A golden changes only with an approved look change (Jake's ruling or a logged G872 decision), never silently.
   Before telling Jake a shard is ready for QA, look at a fresh golden rerun board of that build (Jake, 2026-11-03).
 
-## Deploy → [docs/process/DEPLOY.md](docs/process/DEPLOY.md)
+### Deploy → [docs/process/DEPLOY.md](docs/process/DEPLOY.md)
 
 - Production ships the **newest CI-green `main` with an exact-SHA green boot smoke** immediately (`.github/deploy-pin.json`, G920).
   `gh workflow run deploy` for an immediate release. Never `vercel deploy` by hand while CI is healthy.
