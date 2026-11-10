@@ -8,6 +8,7 @@ import { recordFirstReleaseCard, proveLoadingCard, proveEmber } from './release-
 import {existingReleaseBypass} from './release-access.mjs';
 import {profileReleaseWorker} from './release-worker-profile.mjs';
 import {observeReleaseStorage} from './release-storage-profile.mjs';
+import {observeReleaseSaveControl,watchReleaseSaveRefusals} from './release-save-profile.mjs';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 // Separate admitted machine slots can run both complete phone journeys at
@@ -62,7 +63,7 @@ for (const [name, type] of phones) {
   try {
     const createContext = async () => {
       const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2, serviceWorkers: staged ? 'allow' : 'block' });
-      if (process.argv.includes('--profile-worker')) await context.addInitScript(observeReleaseStorage);
+      if (extended) { await context.addInitScript(observeReleaseStorage); await context.addInitScript(observeReleaseSaveControl); }
       if (extended) {
         await context.grantPermissions(name === 'Chromium' ? ['clipboard-read', 'clipboard-write'] : ['clipboard-read']);
         await context.addInitScript(recordFirstReleaseCard);
@@ -157,7 +158,12 @@ for (const [name, type] of phones) {
         });
         await page.waitForFunction(before => (window.__workerClient?.().frames ?? 0) > Math.max(10, before + 10), firstFrame, { timeout: 90_000 });
         if (extended && label === 'grid') {
-          let stopProfile;
+          let stopProfile, stopSave;
+          if (name === 'Chromium' && process.argv.includes('--profile-worker')) {
+            const workers = page.workers().filter(worker => /\/standalone\/serverWorker[^/]*\.js$/u.test(new URL(worker.url()).pathname));
+            if (workers.length !== 1) throw new Error('Expected one actual save worker');
+            stopSave = await watchReleaseSaveRefusals(browser, workers[0].url());
+          }
           const beforeLongRoad = async () => {
           if (name === 'Chromium' && process.argv.includes('--profile-worker')) {
             const workers = page.workers().filter(worker => /\/standalone\/serverWorker[^/]*\.js$/u.test(new URL(worker.url()).pathname));
@@ -173,6 +179,11 @@ for (const [name, type] of phones) {
           try { await proveEmber(page, modules, name, { beforeLongRoad }); } catch (error) { failure = error; }
           try { await stopProfile?.(); }
           catch (error) { failure = failure === undefined ? error : new AggregateError([failure, error], 'Road and worker profile both refused'); }
+          try {
+            const schema = await stopSave?.();
+            const storage = await page.evaluate(async () => ({ control: Reflect.get(globalThis, '__releaseSaveControl'), faults: Reflect.get(globalThis, '__releaseStorageFaults'), estimate: await navigator.storage.estimate() }));
+            console.log('ACTUAL SAVE BOUNDARY', name, JSON.stringify({ schema, ...storage }));
+          } catch (error) { console.error('Save diagnosis unavailable', String(error)); }
           if (failure !== undefined) throw failure;
         }
       }
