@@ -1,10 +1,10 @@
 {
   "$doc": "Production release policy (J179/J195): pinned is a pure hold. Automatic promotion requires every exact-source staged proof green on the same artifact. The release train selects only exact code-proving engine CI plus Ring 1 and preserves save epoch 1. Fix forward; manual rollback requires Jake authorization. See docs/j189-release.md.",
-  "mode": "newest-ci-green",
-  "sha": "d91507e4e8f2a113acb62fd79752d74af1a7f136",
-  "milestone": "v0.1.3 exact green producer, J195 proof-gated train",
+  "mode": "pinned",
+  "sha": "0649b3057d8ca0b8941b73170ea5e7cb382aa9dc",
+  "milestone": "RT3 native cross-handle recovery regression",
   "gate": "grandfathered",
-  "go": "J195 automatic promotion only after every exact-source staged proof passes; coordinator orders v0.1.3 green tag release. Keep save epoch 1.",
-  "set": "2026-11-09T20:08:11.928Z",
-  "by": "codex-port / coordinator v0.1.3 release order"
+  "go": "Keep the current live build while the demonstrated cross-handle retry/delete regression is fixed forward; resume automatic promotion on the corrected exact-green producer. No rollback or epoch change.",
+  "set": "2026-11-10T14:24:12.340Z",
+  "by": "codex-port / owning release regression"
 }

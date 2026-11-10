@@ -92,3 +92,11 @@ Engine source 63235ed is in normal queue 190, with J206 MUST and SHOULD
 closed. The next exact green producer and hosted journey must still prove
 the integrated source. No product cap, proof oracle, deadline, backend,
 save epoch, database, identity or last good progress is changed or wiped.
+
+The broader two-handle native control finds a remaining regression in 6c1:
+the first handle's older quota retry resurrects a deletion committed by
+the second handle. Per-instance serialization alone is insufficient.
+The exact native cross-handle test is red, so the owning shell release is
+held at already-live 0649b30 while an atomic retry precondition is built
+forward. This is not an engine publication hold or a rollback. The next
+candidate must preserve the newer native value before promotion resumes.
