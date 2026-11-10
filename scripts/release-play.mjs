@@ -156,7 +156,7 @@ async function walk(page, x, z) {
     await page.evaluate(() => { const player = window.__wildshard.world.player; player.touchMove.y = 0; player.touchSprint = false; });
   }
 }
-export async function proveEmber(page, modules, label, { beforeLongRoad } = {}) {
+export async function proveEmber(page, modules, label, { beforeLongRoad, afterSave } = {}) {
   console.log('Real road crossing', label);
   console.log('ROAD PLATFORM', label, JSON.stringify(await page.evaluate(() => {
     const game = window.__wildshard.world.game, gl = game.renderer.getContext();
@@ -184,6 +184,7 @@ export async function proveEmber(page, modules, label, { beforeLongRoad } = {}) 
   await page.evaluate(() => { delete window.__releaseStopped; });
   await page.evaluate(() => window.__workerClientSave());
   const saved = await gridState(page);
+  await afterSave?.();
   if (!saved.saved || saved.phase !== 'settled') throw new Error('Ember did not acknowledge its real durable save');
   console.log('PASS real Ember crossing', label, JSON.stringify(saved));
   await modules.wait();

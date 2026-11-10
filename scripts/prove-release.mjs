@@ -175,15 +175,22 @@ for (const [name, type] of phones) {
             stopProfile = await profileReleaseWorker(browser, workers[0].url(), `tmp/release-worker-profile/${version.build}-${attempt}-worker.json`, { durationMs: attempt === 'grid' ? 15_000 : 210_000, page });
           }
           };
-          let failure;
-          try { await proveEmber(page, modules, name, { beforeLongRoad }); } catch (error) { failure = error; }
+          let failure, capturedSave = false;
+          const captureSave = async () => {
+            if (capturedSave) return;
+            capturedSave = true;
+            const schema = await stopSave?.().catch(() => ({ errors: ['Save observer cleanup unavailable'] }));
+            const storage = await page.evaluate(async () => {
+              const evidence = { control: Reflect.get(globalThis, '__releaseSaveControl'), faults: Reflect.get(globalThis, '__releaseStorageFaults') };
+              try { return { ...evidence, estimate: await navigator.storage.estimate() }; }
+              catch { return { ...evidence, estimateError: 'Native storage estimate unavailable' }; }
+            }).catch(() => ({ pageError: 'Save page evidence unavailable' }));
+            console.log('ACTUAL SAVE BOUNDARY', name, JSON.stringify({ schema, ...storage }));
+          };
+          try { await proveEmber(page, modules, name, { beforeLongRoad, afterSave: captureSave }); } catch (error) { failure = error; }
           try { await stopProfile?.(); }
           catch (error) { failure = failure === undefined ? error : new AggregateError([failure, error], 'Road and worker profile both refused'); }
-          try {
-            const schema = await stopSave?.();
-            const storage = await page.evaluate(async () => ({ control: Reflect.get(globalThis, '__releaseSaveControl'), faults: Reflect.get(globalThis, '__releaseStorageFaults'), estimate: await navigator.storage.estimate() }));
-            console.log('ACTUAL SAVE BOUNDARY', name, JSON.stringify({ schema, ...storage }));
-          } catch (error) { console.error('Save diagnosis unavailable', String(error)); }
+          await captureSave();
           if (failure !== undefined) throw failure;
         }
       }

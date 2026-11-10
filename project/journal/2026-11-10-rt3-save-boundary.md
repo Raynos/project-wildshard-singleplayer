@@ -40,3 +40,32 @@ eight-second watchdog); the shell checks and all 19 boundary tests pass.
 All road limits, save assertions, timeouts and backends remain unchanged.
 The next hosted failure must supply the missing causal evidence; no
 root cause, whole RT3 completion or promotion is claimed by this change.
+
+The local exact 6c8a2ec staged journey passes the explicit durable save and
+earned return in Chromium, including the unchanged software grid backend.
+That does not reproduce the earlier hosted refusal. Its post-return
+diagnostic naturally sees the new document and retired worker, so it is
+not causal save evidence. The observation callback now captures immediately
+after the explicit save and before the unchanged assertion/navigation.
+An early road refusal still captures once in cleanup. Estimate or debugger
+cleanup failures retain the separately collected evidence and cannot
+manufacture a successful save.
+
+The local 0649b30 positive control observes request 100: cell and site
+writes both receive native true acknowledgements, then saved true, with
+no IndexedDB faults (about 491 MB used, 11.2 GB quota). The schema observer
+refuses setup, so it supplies no validation evidence on that attempt.
+Anonymous debugger scripts are now skipped before URL parsing, and setup
+errors name a fixed stage rather than exporting source/error text. The
+separate native class proof remains the schema observer's positive control.
+The anonymous-script forward also admits the actual emitted three-megabyte
+server runtime in a native worker (one resolved report method, no errors).
+This is instrumentation setup evidence, not a gameplay success claim.
+
+Hosted 6c8a2ec now passes both complete phone journeys on the unchanged
+engine 83a4e87, including Chromium's durable Ember save and earned return
+within 0.3 mm. No save source changed between that run and the earlier
+false acknowledgement. The defect is therefore intermittent, not repaired.
+Its promotion correctly refuses because newer shell 0649b30 is already on
+main. Run 42821525583 carries the value-free failure observations; the
+earlier red and unchanged limits remain recorded.

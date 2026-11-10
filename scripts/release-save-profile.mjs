@@ -37,7 +37,7 @@ export function observeReleaseSaveControl() {
 export async function watchReleaseSaveRefusals(browser, workerURL) {
   const root = await browser.newBrowserCDPSession(), pending = new Map(), scripts = [], breakpoints = new Map();
   const evidence = { reports: [], errors: [], methods: 0, dropped: 0 };
-  let serial = 0, sessionId, stopping = false, detached = false;
+  let serial = 0, sessionId, stopping = false, detached = false, setup = 'target';
   const refused = stage => { if (evidence.errors.length === 32) evidence.errors.shift(); evidence.errors.push(stage); };
   const send = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error('Save diagnosis RPC refused: ' + method)); }, 15000);
@@ -82,9 +82,11 @@ export async function watchReleaseSaveRefusals(browser, workerURL) {
     const targets = targetInfos.filter(row => row.type === 'worker' && row.url === workerURL);
     if (targets.length !== 1) throw new Error('Exact save worker target absent or ambiguous');
     ({ sessionId } = await root.send('Target.attachToTarget', { targetId: targets[0].targetId, flatten: false }));
+    setup = 'scripts';
     await send('Debugger.enable');
     for (const script of scripts) {
-      if (!/\/standalone\/serverRuntime[^/]*\.js$/u.test(new URL(script.url).pathname)) continue;
+      if (!URL.canParse(script.url) || !/\/standalone\/serverRuntime[^/]*\.js$/u.test(new URL(script.url).pathname)) continue;
+      setup = 'report-signature';
       const { scriptSource } = await send('Debugger.getScriptSource', { scriptId: script.scriptId });
       const signature = /report\(([\w$]+),([\w$]+),([\w$]+),([\w$]+)\)\{try\{/u.exec(scriptSource);
       if (signature === null || !scriptSource.slice(signature.index, signature.index + 250).includes('save-schema')) throw new Error('Actual SaveStore report method not identified');
@@ -93,6 +95,7 @@ export async function watchReleaseSaveRefusals(browser, workerURL) {
       const location = { scriptId: script.scriptId, lineNumber: lines.length - 1, columnNumber: lines.at(-1).length };
       const [, scope, key, version, issue] = signature;
       const expression = `(()=>{const text=String(${issue}),length=/^Invalid length: Expected <=(\\d+) but received (\\d+)$/i.exec(text);return {document:/standalonesite(?:alt)?-/.test(${scope})?'site':/standalone(?:alt)?-/.test(${scope})?'cell':'other',key:['continuation','continuationSite'].includes(${key})?${key}:'other',version:Number.isSafeInteger(${version})?${version}:null,issue:/^Invalid length/.test(text)?'length':/^Invalid type/.test(text)?'type':'other',length:length===null?null:{maximum:Number(length[1]),actual:Number(length[2])}}})()`;
+      setup = 'report-breakpoint';
       const { breakpointId, actualLocation } = await send('Debugger.setBreakpoint', { location });
       const sourceLines = scriptSource.split('\n');
       const actualOffset = sourceLines.slice(0, actualLocation.lineNumber).reduce((total, line) => total + line.length + 1, 0) + actualLocation.columnNumber;
@@ -102,8 +105,9 @@ export async function watchReleaseSaveRefusals(browser, workerURL) {
       }
       breakpoints.set(breakpointId, expression); evidence.methods++;
     }
+    setup = 'method-count';
     if (evidence.methods !== 1) throw new Error('Expected one actual worker SaveStore report method');
-  } catch { refused('Save diagnosis setup refused'); }
+  } catch { refused('Save diagnosis setup refused: ' + setup); }
   return async () => {
     stopping = true;
     try {
