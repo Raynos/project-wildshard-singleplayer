@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {validatePin, verify} from './engine-pin.mjs';
 import {productionFloor} from './deploy-pin.mjs';
 import {existingReleaseBypass} from './release-access.mjs';
+import {requireEngineFloor} from './release-policy.mjs';
 const api = args => {
   const path=args[0], command=['api','-H','Cache-Control: no-cache',...args];
   if(path.includes('/compare/'))command.push('--jq','{status,base_commit:{sha:.base_commit.sha}}');
@@ -19,6 +20,7 @@ if (!/^https:\/\/wildshard-singleplayer-[a-z0-9]+-raynos-projects\.vercel\.app$/
   || !build?.startsWith(sha.slice(0,7)+'-') || !/^[a-f0-9]{64}$/u.test(archive ?? '') || !/^[1-9][0-9]*$/u.test(run ?? '') || !/^[1-9][0-9]*$/u.test(attempt ?? '')) throw new Error('Invalid exact staged release identity');
 const policy = JSON.parse(readFileSync('.github/deploy-pin.json','utf8'));
 if (policy.mode !== 'newest-ci-green' && !(policy.mode === 'pinned' && policy.sha === sha)) { console.log('Production explicitly held'); process.exit(0); }
+if (policy.minimumEngineCommit !== undefined) requireEngineFloor(policy, JSON.parse(readFileSync('engine.pin.json','utf8')));
 const workflow = api([`repos/${repo}/actions/runs/${run}`]);
 if (workflow.head_sha !== sha || workflow.head_branch !== 'main' || !['push','workflow_dispatch'].includes(workflow.event)
   || workflow.path !== '.github/workflows/deploy.yml' || workflow.run_attempt !== Number(attempt)) throw new Error('Foreign release workflow or attempt');

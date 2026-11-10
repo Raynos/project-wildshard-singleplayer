@@ -4,6 +4,7 @@ import {execFileSync} from 'node:child_process';
 import {appendFileSync, readFileSync, writeFileSync, renameSync} from 'node:fs';
 import {validatePin} from './engine-pin.mjs';
 import {codeProvingJobs} from './engine-code-verdict.mjs';
+import {requireEngineFloor} from './release-policy.mjs';
 const engine = 'project-wildshard/engine', shell = 'Raynos/project-wildshard-singleplayer';
 const api = new URL(process.env.GITHUB_API_URL ?? 'https://api.github.com');
 const fixture = api.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(api.hostname);
@@ -85,6 +86,11 @@ async function select(current) {
     }
     // Pin the exact code-proven ancestor, never its untested docs-only child.
     if (!codeProvingJobs(jobs, candidate)) continue;
+    if (policy.minimumEngineCommit !== undefined) {
+      if (!sha(policy.minimumEngineCommit)) throw new Error('Invalid recovery engine floor');
+      const floor = await query(`repos/${engine}/compare/${policy.minimumEngineCommit}...${candidate}`);
+      requireEngineFloor(policy, {engine:{commit:candidate}}, () => floor);
+    }
     if (!advances(await query(`repos/${engine}/compare/${candidate}...${head}`), candidate)) continue;
     if (candidate === current.engine.commit) return pinnedReleaseState(current, live, active.workflow_runs);
     if (!advances(await query(`repos/${engine}/compare/${current.engine.commit}...${candidate}`), current.engine.commit)) return {state:'held', reason:'producer would move backward or diverge'};

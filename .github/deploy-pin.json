@@ -1,6 +1,7 @@
 {
   "$doc": "Production release policy (J179/J195): pinned is a pure hold. Automatic promotion requires every exact-source staged proof green on the same artifact. The release train selects only exact code-proving engine CI plus Ring 1 and preserves save epoch 1. Fix forward; manual rollback requires Jake authorization. See docs/j189-release.md.",
   "mode": "pinned",
+  "minimumEngineCommit": "c89d19346d6e01bf0d2886b9aa98254dea712c84",
   "sha": "0649b3057d8ca0b8941b73170ea5e7cb382aa9dc",
   "milestone": "RT3 native cross-handle recovery regression",
   "gate": "grandfathered",
