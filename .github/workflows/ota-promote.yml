@@ -188,3 +188,13 @@ jobs:
             cat "$RUNNER_TEMP/ota-site/release.json"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+      # Every deployment is a full copy billed as storage and Vercel's retention does not clear them
+      # (meta VERCEL-SPEND-PLAN). Keeps live, aliased and the newest two; cleanup only warns.
+      - name: Prune superseded deployments
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_UPDATES_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_UPDATES_PROJECT_ID }}
+        run: node scripts/prune-deployments.mjs --keep 2
