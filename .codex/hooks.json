@@ -10,6 +10,10 @@
             "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/session-brief.sh\"",
             "statusMessage": "Reading open asks and live plans",
             "additionalContextLimit": 6000
+          },
+          {
+            "type": "command",
+            "command": "nohup bash \"$(git rev-parse --show-toplevel)/scripts/browser-lane.sh\" reap >/dev/null 2>&1 &"
           }
         ]
       }
@@ -22,6 +26,41 @@
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/guard-bash-safety.sh\"",
             "statusMessage": "Checking shared-tree safety"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/guard-browser-lane.sh\"",
+            "statusMessage": "Checking the browser lane"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/guard-polling.sh\"",
+            "statusMessage": "Checking for polling loops"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/guard-herdr-prompt.sh\"",
+            "statusMessage": "Checking herdr prompt targets"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nohup bash \"$(git rev-parse --show-toplevel)/scripts/browser-lane.sh\" reap >/dev/null 2>&1 &"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nohup bash \"$(git rev-parse --show-toplevel)/scripts/browser-lane.sh\" reap >/dev/null 2>&1 &"
           }
         ]
       }

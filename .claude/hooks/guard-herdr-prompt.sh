@@ -12,7 +12,9 @@ printf '%s' "$cmd" | grep -q 'SKIP_HERDR_GUARD=1' && exit 0
 
 targets="$(printf '%s' "$cmd" | grep -oE 'herdr[[:space:]]+(agent[[:space:]]+prompt|pane[[:space:]]+(send-text|send-keys|run))[[:space:]]+[^[:space:]"'"'"']+' | awk '{print $NF}' | sort -u)"
 [ -z "$targets" ] && exit 0
-check="$CLAUDE_PROJECT_DIR/scripts/herdr-question-open.sh"
+# Codex sets no CLAUDE_PROJECT_DIR; both tools run this from the repo, so git finds it.
+root="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+check="$root/scripts/herdr-question-open.sh"
 for t in $targets; do
   case "$t" in -*) continue ;; esac
   name="$(herdr agent get "$t" 2>/dev/null | jq -r '.result.agent.name // empty' 2>/dev/null || true)"

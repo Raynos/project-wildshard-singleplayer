@@ -11,8 +11,9 @@
     "build": "node scripts/build-release.mjs",
     "pins:verify": "node scripts/engine-pin.mjs verify",
     "pins:bump": "node scripts/engine-pin.mjs bump",
-    "check": "node scripts/check-shell.mjs && node scripts/vercel-prune-check.mjs && tsc -p api/tsconfig.json && node --test test/tooling/chrome-keychain.test.mjs && pnpm check:agents",
+    "check": "node scripts/check-shell.mjs && node scripts/vercel-prune-check.mjs && tsc -p api/tsconfig.json && node --test test/tooling/chrome-keychain.test.mjs && pnpm check:agents && pnpm check:parity",
     "check:agents": "node .githooks/agents-md.mjs lint",
+    "check:parity": "node scripts/agent-parity.mjs --strict",
     "typecheck": "tsc -p api/tsconfig.json",
     "test": "node --test test/engine-pin.test.mjs test/shell-release.test.mjs test/release-worker.test.mjs test/release-train.test.mjs",
     "preview": "node scripts/preview-server.mjs"

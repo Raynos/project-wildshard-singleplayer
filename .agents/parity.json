@@ -1,0 +1,5 @@
+{
+  "accept": {
+    "hooks:PreToolUse guard-subagents.sh": "Reads Claude Code's Agent/Task tool payload and transcript layout; Codex has no Agent tool and no such transcript (MULTI-AGENT-TOOLING audit)."
+  }
+}
