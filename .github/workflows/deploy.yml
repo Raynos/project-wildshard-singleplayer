@@ -203,6 +203,14 @@ jobs:
           if(proof.sha!==process.env.GITHUB_SHA || !/^[a-f0-9]{64}$/.test(proof.archiveHash))throw new Error('Foreign staged archive');
           appendFileSync(process.env.GITHUB_OUTPUT,`build=${version.build}\narchive=${proof.archiveHash}\n`);
           NODE
+      # Every stage is a full ~3 GB copy and Vercel's retention trails by days: 448ef9a dropped this step and
+      # Deployment Storage climbed from 23 GB to 93 GB in three days (VERCEL-SPEND-PLAN VS2). Cleanup only warns.
+      - name: Prune superseded deployments
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+        run: node scripts/prune-deployments.mjs
   prove-pinned:
     needs: [build-pinned, stage-pinned]
     if: github.event_name != 'pull_request' && needs.stage-pinned.outputs.allowed == 'true'
