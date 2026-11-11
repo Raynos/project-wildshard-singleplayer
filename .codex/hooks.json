@@ -20,11 +20,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/guard-git-add-all.sh\"",
-            "statusMessage": "Checking shared Git index safety"
-          },
-          {
-            "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/guard-bash-safety.sh\"",
             "statusMessage": "Checking shared-tree safety"
           }

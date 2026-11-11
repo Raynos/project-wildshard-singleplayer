@@ -1,6 +1,6 @@
 ---
 name: prepare-to-exit
-description: Checkpoint the session and prepare to exit — pathspec-commit only your paths (private index for shared files), run the four gates on a clean export of HEAD, push through the push lock, (no waiting on GitHub CI or the deploy: E428) flip your ask files and plan State lines, queue every leftover, close your browsers, report, then print the BYE / OOPS banner. User-invoked only.
+description: Checkpoint the session and prepare to exit — commit only your paths with scripts/commit.sh, run the four gates on a clean export of HEAD, push through the push lock, (no waiting on GitHub CI or the deploy: E428) flip your ask files and plan State lines, queue every leftover, close your browsers, report, then print the BYE / OOPS banner. User-invoked only.
 disable-model-invocation: true
 ---
 
@@ -42,7 +42,7 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
 - **What ships is a clean export of HEAD** (CI checks out the commit), never the working tree — so *HEAD* is what
   has to be green, and other agents' dirty files never ship.
 - **Game browsers are a shared lane: at most 4 open machine-wide, enforced by `scripts/browser-lane.sh` and its hook (E312).**
-  Each open game tab costs ~1.5 cores for as long as it lives; SwiftShader ~3 per page. Close yours before the banner (step 6).
+  Each open game tab costs ~1.5 cores for as long as it lives; SwiftShader ~3 per page. Close yours before the banner (step 5).
 - **Paths.** The checkout is `~/projects/games/wildshard-singleplayer`; its memory directory is
   `~/.claude/projects/-Users-raynos-projects-games-wildshard-singleplayer/memory/` (index `MEMORY.md`).
 
@@ -51,27 +51,15 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
 1. **Commit only your paths.** First `git config core.hooksPath` must print `.githooks` (else the pre-commit
    image check and the post-commit ledger don't run — `git config core.hooksPath .githooks`). Then `git status`:
    list exactly which paths you (and your subagents) authored this session.
-   - **Default — a pathspec commit.** An edit to a tracked file is never staged; commit it directly:
-     `git commit -m "<subject>" -- path/a path/b` (git's `--only`: HEAD + those paths' working-tree copies, the
-     shared index untouched). A **new** file: `git add path/new` first, then the same pathspec commit. Then
-     `git show --stat HEAD` must list only your paths — if it doesn't, stop and say so; never `reset` to fix it
-     while other agents may have committed on top.
+   - **Commit with `scripts/commit.sh "<subject>" -- <paths>`** (D9, AGENTS.md "Version control"): it marks new
+     files intent-to-add and pathspec-commits them under one short lock, the shared index untouched. Name literal
+     files, never a directory or a glob. Then `git show --stat HEAD` must list only your paths — if it doesn't, stop
+     and say so; never `reset` to fix it while other agents may have committed on top.
    - **A shared file with someone else's hunks** (`git diff -- <path>` shows lines you didn't write — typical for
      `src/main.ts`, `src/engine/client/audio/Audio.ts`, `src/player/*.ts`, `src/engine/client/ui/Menu.ts`, `AGENTS.md`, a `docs/plans/*.md`):
-     a pathspec commit would ship their half-done work inside yours. Either wait for them, or commit only your
-     hunks through a private index pinned to a captured base:
-     ```
-     BASE=$(git rev-parse HEAD)                                   # capture ONCE, before read-tree
-     export GIT_INDEX_FILE=<scratchpad>/idx; git read-tree $BASE
-     git diff $BASE -- <path>                                     # → keep only your hunks in <scratchpad>/mine.patch
-     git apply --cached <scratchpad>/mine.patch                   # applies to $BASE's blob, never the worktree copy
-     git update-index --add --cacheinfo 100644,$(git hash-object -w <file>),<path>   # whole files that are all yours
-     T=$(git write-tree)
-     C=$(git commit-tree $T -p $BASE -m "<subject>"); git update-ref refs/heads/main $C $BASE   # refuses if HEAD moved → redo
-     unset GIT_INDEX_FILE
-     ```
-     `commit-tree` skips `.githooks`: before it, run `node scripts/repo-size.mjs --index` with the same
-     `GIT_INDEX_FILE` (the storage check), or run the real pre-commit hook as GIT.md's lane path does.
+     agree the hunks with their owner, then land only yours with
+     `scripts/commit.sh --patch <scratchpad>/mine.patch "<subject>" -- <path>` (docs/process/GIT.md). Direct
+     commits and private-index landings are retired.
    - A Conventional Commits subject (≤ 50 characters) that states the finding, and the `Assisted-by:` trailer per
      AGENTS.md "Version control" (no `Co-Authored-By:`; the commit-msg hook refuses it). Say plainly
      what is red and whose it is — another agent's uncommitted WIP is not your red, but a red *HEAD* is everyone's.
@@ -86,15 +74,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    Done means on origin/main with the local gates (step 2) green. **Don't wait for the CI run or the deploy** (E428):
    no `gh run watch`, no `version.json` polling. If a CI run you already saw is red on your commit, fix it; otherwise
    leave CI to run on its own.
-   After a private-index commit, also check nobody's work regressed between your `BASE` and HEAD
-   (`git show --stat` the commits in `$BASE..HEAD`, `git rev-parse HEAD:<path>` for the files they touched) — the
-   read-tree / commit-tree race silently reverts a sibling's commit if HEAD moved in between. An unpushed commit at
-   exit is an OOPS (one held behind another agent's push is fine: name it in the report).
-4. **Sync the worktree after a private-index commit.** It never writes the working tree, so a build you serve
-   (`scripts/serve-build.sh`) would still have the old code. Bring *your* files to HEAD with the Write / Edit tool (or `git show HEAD:<path>`
-   into a literal path) — only where the worktree copy is an older version of *yours*; never overwrite a copy that
-   carries someone else's hunks. Pathspec commits need no sync.
-5. **Ledgers** ([docs/process/ASKS.md](../../../docs/process/ASKS.md)). Every request for work you took this session
+   An unpushed commit at exit is an OOPS (one held behind another agent's push is fine: name it in the report).
+4. **Ledgers** ([docs/process/ASKS.md](../../../docs/process/ASKS.md)). Every request for work you took this session
    has its own file `docs/tasks/asks/<ID>.md` (claimed with `scripts/ask-new.sh "<the user's words>"`), and its
    `**Status:**` line is true and in the vocabulary: `done (<date>): <SHA>` once it is on origin/main with the local gates
    green (no CI or deploy wait), `in flight (<date>, <owner>)`,
@@ -104,7 +85,7 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    `project/archive/<YYYY-MM-DD>-<name>.md` with State `archived <today> (finished <date>)` and the links to it
    fixed; a plan with an open row is not finished. A `done` ask whose push isn't on origin/main goes back to
    step 3. Edit shared ledgers with Edit or `>>`, never `>`.
-6. **Close every browser and emulator you opened, and empty your scratchpad.** `agent-browser session list` shows none of yours
+5. **Close every browser and emulator you opened, and empty your scratchpad.** `agent-browser session list` shows none of yours
    (`agent-browser --session <s> close`); `scripts/browser-lane.sh status` lists no browser you started (it shows each
    browser's parent; `scripts/browser-lane.sh reap` clears orphans); Playwright scripts have `browser.close()`d; an Android emulator you booted is gone (`adb -s <serial> emu kill`). An open
    game tab renders at 60 fps forever and eats a slot of the 4-browser lane for everyone.
@@ -114,24 +95,24 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
    the rest with literal paths: clean exports, `gate-*` / `base-*` checkouts, render frames, build logs, dumps.
    Leave only small text the report links to (a few MB at most), and give its size in the report. Don't rename
    anything aside (`trash/`, `old-*`, `*.old-<ts>`, `*.stopped-<ts>`): that is not deleting. Don't touch another
-   session's scratchpad or anything a live subagent of yours is still writing (step 8).
-7. **Leftover work: build it, or it is a plan row** (E423, docs/process/ASKS.md). Anything this session found,
+   session's scratchpad or anything a live subagent of yours is still writing (step 7).
+6. **Leftover work: build it, or it is a plan row** (E423, docs/process/ASKS.md). Anything this session found,
    deferred or didn't finish is **built now**. If it truly can't land, it becomes an **open row of the live plan it
    belongs to** (`docs/plans/*.md`, with an acceptance line, its State line naming it), and the report says so.
    **Never a new ask file for a leftover**: per-leftover asks were the graveyard (86 of 133 open asks at E423). No
    iPhone checks for Jake (he does no phone chores); a pick for him is asked with the question tool (context, one
    recommendation), and a skipped one stays `needs pick` to be asked again; never a decision page. A commit body, a subagent report, a memory note or a chat message is a RECORD, not a QUEUE.
    This is the step most likely to be skipped because everything *looks* clean; it is a banner precondition below.
-8. **Subagents and sibling sessions.** Don't kill running subagents to exit — a checkpoint resumes committed state;
+7. **Subagents and sibling sessions.** Don't kill running subagents to exit — a checkpoint resumes committed state;
    live work notifies when done. List every agent still alive with what it holds and which files it owns. If a
    subagent of yours has uncommitted edits in the tree, either land them through step 1 or queue exactly what is
-   half-done (step 7) — an agent's WIP that nobody else will finish is an OOPS. Sibling sessions are found with
+   half-done (step 6) — an agent's WIP that nobody else will finish is an OOPS. Sibling sessions are found with
    ListAgents (herdr: mind `HERDR_SOCKET_PATH`, there is more than one server). `TaskStop` only orphaned polling
    loops or if the user asks.
-9. **Memory.** If this session learned something the next one must know that the repo does not record (a tool
+8. **Memory.** If this session learned something the next one must know that the repo does not record (a tool
    gotcha, a user rule, a decision's why), write it to the memory directory above and index it in `MEMORY.md`.
    Don't duplicate what AGENTS.md or a commit already says.
-10. **Report**, then the banner. The report names: commits (SHAs + one line each), the four gates on the exported tree and their
+9. **Report**, then the banner. The report names: commits (SHAs + one line each), the four gates on the exported tree and their
     results, what is left local (yours vs others' WIP), every live agent, every ask file this session touched and
     its Status, browsers / emulators closed, the scratchpad size after cleanup — so the user knows whether it is
     safe to close.
