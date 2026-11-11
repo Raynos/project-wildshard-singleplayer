@@ -3,7 +3,6 @@
   "files": [
     ".gitattributes",
     ".github/deploy-pin.json",
-    ".github/workflows/admin-deploy.yml",
     ".github/workflows/deploy.yml",
     ".github/workflows/ota-promote.yml",
     ".github/workflows/size-watch.yml",
@@ -22,8 +21,6 @@
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
     "scripts/admin-data",
-    "scripts/admin-data.d.mts",
-    "scripts/admin-data.mjs",
     "scripts/boot-temp-warn.sh",
     "scripts/browser-lane.sh",
     "scripts/browser-slot-lock.py",
