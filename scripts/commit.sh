@@ -15,7 +15,7 @@ message=$1; shift 2
 cd "$(git rev-parse --show-toplevel)"
 for path in "$@"; do
   case "$path" in .|:/|/*|../*|*:*|*\**|*\?*|*\[*) echo "commit.sh: name literal repository files: $path" >&2; exit 2 ;; esac
-  [ ! -d "$path" ] || { echo "commit.sh: name files, not directories: $path" >&2; exit 2; }
+  [ -L "$path" ] || [ ! -d "$path" ] || { echo "commit.sh: name files, not directories: $path" >&2; exit 2; }
 done
 common="$(git rev-parse --path-format=absolute --git-common-dir)"
 # This checkout's own index: a linked worktree has its own, never the common dir's (meta DEV-SPEED DS6).
