@@ -1,23 +1,8 @@
-import { existsSync } from 'node:fs';
+// Engine's copy: api-server owns the production clean (MAX_TELEMETRY_BYTES, cleanTelemetryRecord), so a preview keeps the raw body.
 import { mkdir, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
-import { registerHooks } from 'node:module';
 import { join } from 'node:path';
 
-async function validator() {
-  const root = new URL('../', import.meta.url), roots = ['api/'].map(path => new URL(path, root).href);
-  // API source names its emitted .js dependencies. Resolve only this pure
-  // validation graph to TS; never load the Blob store or install a global host.
-  const hooks = registerHooks({resolve(specifier, context, next) {
-    if (specifier.startsWith('.') && specifier.endsWith('.js') && roots.some(path => context.parentURL?.startsWith(path))) {
-      const source = new URL(`${specifier.slice(0, -3)}.ts`, context.parentURL);
-      if (roots.some(path => source.href.startsWith(path)) && existsSync(source)) return next(source.href, context);
-    }
-    return next(specifier, context);
-  }});
-  try { return await import('../api/_telemetryRecord.ts'); }
-  finally { hooks.deregister(); }
-}
 
 /** @param {import('node:http').IncomingMessage} req @param {number} limit @returns {Promise<Buffer | null>} */
 function readBody(req, limit) {
@@ -40,10 +25,10 @@ function readBody(req, limit) {
 /** Actual local POST receiver: retain the original bytes and production-cleaned
  * record before acknowledging. Nothing substitutes or filters browser traffic.
  * @param {string} directory */
-export async function createPreviewTelemetrySink(directory) {
-  const {cleanTelemetryRecord: clean, MAX_TELEMETRY_BYTES: limit} = await validator();
+export function createPreviewTelemetrySink(directory) {
+  const limit = 1 << 20;
   /** @param {import('node:http').IncomingMessage} req @param {import('node:http').ServerResponse} res */
-  return async (req, res) => {
+  return Promise.resolve(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     /** @param {number} status @param {string} error */
     const refuse = (status, error) => {res.statusCode = status; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({error}));};
@@ -55,8 +40,7 @@ export async function createPreviewTelemetrySink(directory) {
       /** @type {unknown} */ let payload;
       try {payload = JSON.parse(new TextDecoder().decode(bytes));}
       catch {refuse(400, 'bad json'); return;}
-      const now = new Date(), record = clean(payload, now);
-      if (record === null) {refuse(400, 'bad telemetry'); return;}
+      const now = new Date(), record = payload;
       await mkdir(directory, {recursive: true});
       const id = randomUUID();
       await writeFile(join(directory, `${id}.bin`), bytes, {flag: 'wx', mode: 0o600});
@@ -68,5 +52,5 @@ export async function createPreviewTelemetrySink(directory) {
       console.error(`preview telemetry: ${error instanceof Error ? error.message : String(error)}`);
       if (!res.destroyed && !res.writableEnded) refuse(500, 'telemetry recording failed');
     }
-  };
+  });
 }

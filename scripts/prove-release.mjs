@@ -10,6 +10,7 @@ import {profileReleaseWorker} from './release-worker-profile.mjs';
 import {observeReleaseStorage} from './release-storage-profile.mjs';
 import {observeReleaseSaveControl,watchReleaseSaveRefusals} from './release-save-profile.mjs';
 const base = process.argv[2];
+const API_ORIGIN = 'https://api.wildshard.io';
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 // Separate admitted machine slots can run both complete phone journeys at
 // once. The default still proves both; selection never changes an assertion.
@@ -51,10 +52,11 @@ if (staged) {
   }
   for (const route of ['inbox', 'errors', 'waitlist', 'telemetry']) {
     const origin = route === 'waitlist' ? 'https://wildshard.io' : 'capacitor://localhost';
-    const options = await request(`/api/${route}`, { method: 'OPTIONS', headers: { Origin: origin } });
-    const get = await request(`/api/${route}`), body = await get.json();
-    if (options.status !== 204 || options.headers.get('access-control-allow-origin') !== origin || get.status !== 401 || body.error !== 'bad password' || !get.headers.get('cache-control')?.includes('no-store')) throw new Error(`Vercel API function contract failed: ${route} OPTIONS ${options.status}, GET ${get.status}`);
-    console.log('PASS Vercel API', route, 'OPTIONS 204; unauthenticated GET 401; no-store');
+    // API-CLOUDFLARE AC11: the page calls the api-server Worker (VITE_API_ORIGIN); the shell has no functions.
+    const options = await fetch(`${API_ORIGIN}/api/${route}`, { method: 'OPTIONS', headers: { Origin: origin } });
+    const get = await fetch(`${API_ORIGIN}/api/${route}`), body = await get.json();
+    if (options.status !== 204 || options.headers.get('access-control-allow-origin') !== origin || get.status !== 401 || body.error !== 'bad password' || !get.headers.get('cache-control')?.includes('no-store')) throw new Error(`API contract failed: ${route} OPTIONS ${options.status}, GET ${get.status}`);
+    console.log('PASS API', API_ORIGIN, route, 'OPTIONS 204; unauthenticated GET 401; no-store');
   }
 }
 console.log('Proving', JSON.stringify(version));

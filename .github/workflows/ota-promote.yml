@@ -44,6 +44,8 @@ concurrency:
 
 env:
   OTA_ORIGIN: https://wildshard-updates.vercel.app
+  # API-CLOUDFLARE AC11: the bundle calls errors, telemetry and the inbox on the api-server Worker.
+  VITE_API_ORIGIN: https://api.wildshard.io
 
 jobs:
   promote:

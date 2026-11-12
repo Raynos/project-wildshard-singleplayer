@@ -140,10 +140,6 @@ def required(files, sha, root):
     names = {row['path'] for row in files}
     for name in ('.vercel/output/config.json', '.vercel/output/static/index.html',
                  '.vercel/output/static/sw.js', '.vercel/output/static/version.json',
-                 '.vercel/output/functions/api/inbox.func/.vc-config.json',
-                 '.vercel/output/functions/api/errors.func/.vc-config.json',
-                 '.vercel/output/functions/api/waitlist.func/.vc-config.json',
-                 '.vercel/output/functions/api/telemetry.func/.vc-config.json',
                  'dist/version.json', 'dist/.vite/chunk-modules.json'):
         if name not in names:
             raise ValueError('Incomplete prebuilt output: ' + name)

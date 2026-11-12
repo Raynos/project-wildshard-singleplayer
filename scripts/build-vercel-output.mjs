@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Package the already-tested dist and API functions. Vercel never runs pnpm build again.
+// Package the already-tested dist (no functions: the API is api.wildshard.io, AC11). Vercel never runs pnpm build again.
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 
