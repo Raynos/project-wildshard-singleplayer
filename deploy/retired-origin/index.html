@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Wildshard has moved</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#11161b;color:#e8edf2;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:16px}a{color:#7cc4ff}</style>
+</head>
+<body>
+<p>Wildshard has moved to <a href="https://play.wildshard.io/">play.wildshard.io</a>.</p>
+<script>
+// A leftover service worker from this retired origin is removed before leaving (deploy/retired-origin/sw.js).
+(async () => {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if ('caches' in self) {
+      const names = await caches.keys();
+      await Promise.all(names.filter((n) => n.startsWith('ws-')).map((n) => caches.delete(n)));
+    }
+  } catch { /* leave anyway */ }
+  location.replace('https://play.wildshard.io/');
+})();
+</script>
+</body>
+</html>
