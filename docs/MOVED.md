@@ -1040,3 +1040,9 @@
 | test/webgl-startup.test.ts | test/webgl-startup.test.ts | test/webgl-startup.test.ts |
 | test/wind.test.ts | test/wind.test.ts | test/wind.test.ts |
 | test/worldClock.test.ts | test/worldClock.test.ts | deleted by its owner |
+
+## Moved docs (meta SINGLEPLAYER-DOCS)
+
+- 2026-11-12, SD8: `docs/plans/KITCHEN-SINK.md`, `docs/plans/kitchen-sink-v2/`, the 14 Kitchen Sink pages in `docs/reviews/`
+  and the tracker `art/showcase-template/kitchen-sink-v2/` moved to `project-wildshard/shard-showcase` `docs/plans/`
+  (reviews in `kitchen-sink-v2/reviews/`, tracker in `kitchen-sink-v2/tracker/`), shard-showcase `b7ad268`.
