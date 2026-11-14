@@ -43,6 +43,55 @@ done
 [ "$found" = 1 ] || echo "(none)"
 echo ""
 node scripts/telemetry-brief.mjs 2>/dev/null || true
+# -- ./tmp (REPO-DISK DK7) -- ported from repo-kit's .agents/hooks/session-brief.sh;
+# singleplayer is not on the kit's agent layout, so it carries the block and
+# lib/tmp-measure.sh by hand.
+here="$ROOT/.claude/hooks"; root="$ROOT"
+# One line: size, folders, folders over 3 days, folders without an
+# .owner (scratch-dir.mjs writes it, DK3); a warning over 30 GiB. The
+# size comes from tmp/.disk-line, which lib/tmp-measure.sh refreshes in
+# the background once it is an hour old (du takes seconds on a big
+# ./tmp; the brief must not). WS_TMP_MEASURE=sync measures inline.
+folders=0; unowned=0; entries=0
+for entry in tmp/*; do
+  [ -e "$entry" ] || [ -L "$entry" ] || continue
+  entries=$((entries + 1))
+  [ -d "$entry" ] && [ ! -L "$entry" ] || continue
+  folders=$((folders + 1))
+  [ -e "$entry/.owner" ] || unowned=$((unowned + 1))
+done
+if [ "$entries" = 0 ]; then
+  echo "-- ./tmp is empty --"
+else
+  # tmp/.disk-line: "<KiB> <folders over 3 days> <epoch seconds>". No
+  # leading zeros, so bash never reads a field as octal.
+  measured() {
+    local n='^(0|[1-9][0-9]*)$'
+    kib=""; stale=""; at=""
+    read -r kib stale at 2>/dev/null < tmp/.disk-line
+    [[ "$kib" =~ $n && "$stale" =~ $n && "$at" =~ $n ]]
+  }
+  if [ "${WS_TMP_MEASURE:-}" = sync ]; then
+    bash "$here/lib/tmp-measure.sh" "$root"
+  elif ! measured || [ -z "$(find tmp/.disk-line -mmin -60 2>/dev/null)" ]; then
+    # A lock left by a killed walk frees itself after 30 minutes.
+    find tmp/.disk-line.lock -maxdepth 0 -mmin +30 -exec rmdir {} \; 2>/dev/null
+    if mkdir tmp/.disk-line.lock 2>/dev/null; then
+      nohup nice bash "$here/lib/tmp-measure.sh" "$root" locked </dev/null >/dev/null 2>&1 &
+    fi
+  fi
+  if measured; then
+    # The folder counts are live; the size and the age count are from the
+    # measurement, so an age count over today's folders is capped.
+    [ "$stale" -gt "$folders" ] && stale="$folders"
+    gib="$(awk -v k="$kib" 'BEGIN { printf "%.1f", k / 1048576 }')"
+    warn=""
+    [ "$kib" -gt 31457280 ] && warn=" !! over 30 GiB: delete your finished folders, keep only logs and JSON (REPO-DISK DK5)"
+    echo "-- ./tmp is $gib GiB in $folders folders; $stale over 3 days; $unowned without an owner (size and age measured $(( ($(date +%s) - at) / 60 )) min ago) --$warn"
+  else
+    echo "-- ./tmp has $folders folders; $unowned without an owner; size measuring now, the next session shows it --"
+  fi
+fi
 echo "-- recent commits --"
 git log --oneline -8 2>/dev/null || true
 if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
