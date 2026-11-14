@@ -506,6 +506,19 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   `opus-ls11` 16 GB, `opus-fastload` 12 GB / 162k files, `opus-split` 5.2 GB, `opus-sr4` and `opus-ls5` 4.8 GB each.
   Benchmark and preview-grid output, which the lanes leave behind (section 4 of the fix plan). Disk only, not boot.
   `shardfile/tmp/codex-wire-ws1-20261109` 1.9 GB; `wildshard-singleplayer/tmp/codex-ci-finish` 2.4 GB.
+- **11-13 21:13 check: a new `$TMPDIR` writer, `wildshard dev`.** Boot purge 50k → **112k**, `$TMPDIR` 149 MB →
+  **10 GB / 85k files**. Eight `$TMPDIR/wildshard-dev-*` folders (50k files, about 10 GB, 11:35–20:47), each holding
+  `build-N` products. Writer: `sharddev/src/sharddev/dev.ts:44` (`mkdtempSync(join(tmpdir(), 'wildshard-dev-'))`). It
+  deletes the folder only in `close()` (line 119), so a dev server that is killed rather than closed leaves its builds
+  behind. Only one dev server was running (pid 28866, `_template`, 20:47), so seven folders are orphans. **Fix:** build
+  into the repo's `./tmp/dev/<pid>` (as `vitest-tmp.ts` does), remove on SIGINT/SIGTERM, and have the janitor sweep
+  stale `wildshard-dev-*`. Under the 250k line, but it grows about 1 GB per dev session.
+- **11-13 10:10: `/cores/core.11718`, 13 GB, the Android emulator again.** `qemu-system-aarch64-headless` crashed in
+  MoltenVK `vkFreeMemory` during gfxstream process cleanup (shutdown), on the AVD in
+  `project-wildshard-meta/tmp/opus-androidemu/avd`. Only `ulimit -c 0` (`~/.bashrc:12`) stops these; `core.22234`
+  (6.5 GB, 11-11, a `shardfile` node out-of-memory) is still there. `/cores` 19 GB. Also: `engine/tmp/opus-relstaging2`
+  10.7 GB (engine tree 6.0 + prod 4.9, last written 15:53); engine `.worktrees` 8 → 17 / 72 GB; free disk 1,782 →
+  **1,677 GB** in 12 hours.
 
 ## Decisions (Jake, 2026-10-15)
 
