@@ -1,3 +1,5 @@
+Moved to meta `docs/plans/WASM-HOST.md` (J366, 2026-11-15)
+
 # Plan: WASM-HOST — a fast, batched Wasm host for shard AssemblyScript
 
 **State:** `parked 2026-11-04 (Jake, 11-04 ~09:35 Cancun: "Wasm host, we're not working on that"; restarts on his word)` — was: `in progress` (view lane only) 2026-10-21: Jake started **H0, H0b, H1–H6, H9, H13** scoped to Pine Hollow and Driftwood's per-frame view code, widened to Nine Dragon and Nalati on 2026-10-22 (G595) (SHARD-PLATFORM G570, [../../project/archive/2026-10-27-dw-pine-zero.md](../../project/archive/2026-10-27-dw-pine-zero.md) row ZF); every other row stays parked until Jake says. Was: `open`, parked (2026-10-20): design now (two council rounds, H0 numbers); **nothing is built until Jake says

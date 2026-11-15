@@ -1,3 +1,5 @@
+Moved to meta `docs/plans/HOST-AUDIT.md` (J366, 2026-11-15)
+
 # Plan: HOST-AUDIT — score every engine and game host, fix the ruler, put shard code back in the shard
 
 **State:** `parked` 2026-10-24 — an off-shoot of [SHARD-PLATFORM](../../project/archive/2026-11-04-shard-platform.md), like template-free and KITCHEN-SINK: it starts only after every SHARD-PLATFORM mini plan is finished and Jake says go (G679). Its starting point is accepted: all 114 recommendations in [the inventory](../../project/archive/reviews/2026-10-24-host-audit-inventory.md) (95 keep, 18 fold, 1 retire). It owns G594's ruler fix and G595's host-by-host approvals.
