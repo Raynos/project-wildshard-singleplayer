@@ -519,6 +519,17 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   (6.5 GB, 11-11, a `shardfile` node out-of-memory) is still there. `/cores` 19 GB. Also: `engine/tmp/opus-relstaging2`
   10.7 GB (engine tree 6.0 + prod 4.9, last written 15:53); engine `.worktrees` 8 → 17 / 72 GB; free disk 1,782 →
   **1,677 GB** in 12 hours.
+- **11-15: Jake's cleanup cleared about 380 GB** (free 1,691 → 2,069 GB). It followed the inventory in
+  `~/.cache/wildshard/disk-cleanup-2026-11-15.md`: `/cores` was emptied and `lift-work` removed, engine `tmp` went from
+  137 to 25 GB, and singleplayer `tmp` from 127 to 43 GB.
+- **11-17 21:17: `engine/tmp/codex-ms` grew from 21.6 to 72 GB in 12 hours** (engine `tmp` 38 → 85 GB, 388k → 899k
+  files). It belongs to the live Codex release lane (`ci39-watch.log`, `npm39-publish-driver.log`, written 21:20). It
+  keeps a full staging or verify tree of 3–6 GB for **every release attempt** and never removes the old ones:
+  `verify38-first` 6.3, `staging` 4.4, `staging38` 4.0, then `staging38-f3203`, `staging38-c11e174a`,
+  `staging-80ba784b`, `staging-ab61217e` and `staging39` at 3.9 each, and `journey35/36-pine*` at 3.0–3.2. That's 1,263
+  entries in all. The same lane earlier made and cleared `codex-ms-v029` (13 GB) and `codex-ms-v032` (16 GB).
+  **Fix:** keep only the current attempt's tree and delete the previous one once its verdict and log are written.
+  Free disk 1,973 GB.
 
 ## Decisions (Jake, 2026-10-15)
 
