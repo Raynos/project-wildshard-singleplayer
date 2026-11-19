@@ -536,6 +536,11 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   and so on). Writer: a Codex CLI session's release-train loop (`node tmp/codex-ms/green47.mjs`, pid 41829, from 19:50,
   retrying every 45 s). A separate Codex lane, `codex-nalati-contact` (11.4 GB, `quiet-matrix.mjs`), is also live. Free
   disk 1,927 → **1,807 GB**. At this pace the 1,000 GB floor is about 5 days away.
+- **11-19 09:17: `codex-ms` 272 GB (+73 in 12 h), engine `tmp` 311 GB / 3.0M files, free disk 1,701 GB.** The lane is
+  now on v0.1.49 (`WS_LANE_NAME=codex-ms ../repo-kit/release.sh v0.1.49 --published`, `e74bc49-run.sh`). It also
+  wrote `/private/tmp/wildshard-release49-gate.pAE1P9` (294 MB / 10k files, 08:14). That one is boot-purged, so it
+  should go to `./tmp` too. Small for now. Not from `repo-kit/release.sh` itself (no `mktemp` there), so it's probably
+  the lane's own gate script.
 
 ## Decisions (Jake, 2026-10-15)
 
