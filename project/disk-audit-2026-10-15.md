@@ -530,6 +530,12 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   entries in all. The same lane earlier made and cleared `codex-ms-v029` (13 GB) and `codex-ms-v032` (16 GB).
   **Fix:** keep only the current attempt's tree and delete the previous one once its verdict and log are written.
   Free disk 1,973 GB.
+- **11-18 21:17: `codex-ms` is now 194–199 GB** (72 GB on 11-17 21:17, then 118, then 199), and the growth is speeding
+  up: +81 GB in the last 12 hours. Engine `tmp` is **239 GB / 2.35M files**. It holds 2,139 entries, 219 of them
+  subfolders, one or more per release-train step (`production46`, `ring47-copy`, `ring47-ci`, `recook46-nine-journey`
+  and so on). Writer: a Codex CLI session's release-train loop (`node tmp/codex-ms/green47.mjs`, pid 41829, from 19:50,
+  retrying every 45 s). A separate Codex lane, `codex-nalati-contact` (11.4 GB, `quiet-matrix.mjs`), is also live. Free
+  disk 1,927 → **1,807 GB**. At this pace the 1,000 GB floor is about 5 days away.
 
 ## Decisions (Jake, 2026-10-15)
 
