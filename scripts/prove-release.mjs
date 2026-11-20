@@ -1,6 +1,8 @@
+import { agentFetch as fetch } from './wildshard-agent-requests.mjs';
 import { KEYCHAIN_ARGS } from './chromium-keychain.mjs';
 // Real phone-profile visits of one finished artifact. No game service stubs.
-import { chromium, webkit, devices } from 'playwright';
+import * as playwright from 'playwright';
+import { installBrowserActorMarker } from './wildshard-browser-marker.mjs';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { observeReleaseModules, waitForReleaseWorker } from './release-worker.mjs';
@@ -9,6 +11,8 @@ import {existingReleaseBypass} from './release-access.mjs';
 import {profileReleaseWorker} from './release-worker-profile.mjs';
 import {observeReleaseStorage} from './release-storage-profile.mjs';
 import {observeReleaseSaveControl,watchReleaseSaveRefusals} from './release-save-profile.mjs';
+installBrowserActorMarker(playwright);
+const { chromium, webkit, devices } = playwright;
 const base = process.argv[2];
 const API_ORIGIN = 'https://api.wildshard.io';
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');

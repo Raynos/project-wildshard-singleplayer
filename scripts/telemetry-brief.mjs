@@ -1,4 +1,5 @@
 /** The review secret remains in the user's config, never the repo or printed output. */
+import { agentFetch as fetch } from './wildshard-agent-requests.mjs';
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
