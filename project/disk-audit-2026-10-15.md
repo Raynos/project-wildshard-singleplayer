@@ -545,6 +545,9 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   The lane is on `staging53-rollout.sh`. It has grown 70–80 GB every 12 hours for three days, so the 1,000 GB floor is
   about 4–5 days away. Also: `engine-quickfix/tmp` went from 6.2 to 15 GB (+135k files): `push-gate` 1.0 → 6.3 GB and
   `buddy-cook` 6.2 GB. New `engine/tmp/opus-of27d` is 6.4 GB.
+- **11-20 09:17: `codex-ms` 431 GB (+77), engine `tmp` 469 GB / 4.67M files, free disk 1,479 GB (−93).** The lane is on
+  `wait57-cut.sh`. `~/.cache/wildshard` went from 108 to 124 GB. **Correction:** free disk is falling about 200 GB a
+  day across everything, not just `codex-ms`, so the 1,000 GB floor is **about 2.5 days away (around 11-22)**, not 4–5.
 
 ## Decisions (Jake, 2026-10-15)
 
