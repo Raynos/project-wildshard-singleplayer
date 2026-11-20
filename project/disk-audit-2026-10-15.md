@@ -541,6 +541,10 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   wrote `/private/tmp/wildshard-release49-gate.pAE1P9` (294 MB / 10k files, 08:14). That one is boot-purged, so it
   should go to `./tmp` too. Small for now. Not from `repo-kit/release.sh` itself (no `mktemp` there), so it's probably
   the lane's own gate script.
+- **11-19 21:17: `codex-ms` 354 GB (+82 in 12 h), engine `tmp` 395 GB / 3.85M files, free disk 1,572 GB (−129).**
+  The lane is on `staging53-rollout.sh`. It has grown 70–80 GB every 12 hours for three days, so the 1,000 GB floor is
+  about 4–5 days away. Also: `engine-quickfix/tmp` went from 6.2 to 15 GB (+135k files): `push-gate` 1.0 → 6.3 GB and
+  `buddy-cook` 6.2 GB. New `engine/tmp/opus-of27d` is 6.4 GB.
 
 ## Decisions (Jake, 2026-10-15)
 
