@@ -5,3 +5,6 @@
 
 Keep Wildshard requests from the release and records probes marked.
 The release browser keeps its phone UA and avoids a global header.
+
+Use repo-kit's Fetch-only portable helper. The release harness does
+not replace the socket transport.
