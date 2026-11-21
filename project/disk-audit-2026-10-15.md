@@ -554,6 +554,11 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   was running at 21:17. `engine-quickfix/tmp` went from 12 to 18 GB: `buddy-cook/engine` is a full engine copy with
   `node_modules` (6.4 → 10.5 GB), and `dev-world` grew from 1.9 to 3.8 GB (a nine-dragon-stack dev server, last written
   11:55). The floor is now about 2 days away at this rate.
+- **11-21 09:17: `codex-ms` 556 GB (+56), engine `tmp` 591 GB / 5.98M files (+610k), free disk 1,339 GB (−62).** The lane
+  is on `production63-rollout.sh` (with `page-release.mjs production upload`). It added steps 61–63, each staging deploy
+  5.1–5.4 GB, and still keeps every older step. `engine-quickfix/tmp` held at 18 GB and gained a `.temp-janitor-stamp`
+  (11-20 21:26), so a tmp janitor now runs there; none has reached `engine/tmp/codex-ms`. Free disk fell 140 GB in the
+  last 24 h, so the 1,000 GB floor is about 2.5 days away (around 11-23).
 
 ## Decisions (Jake, 2026-10-15)
 
