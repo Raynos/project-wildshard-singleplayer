@@ -548,6 +548,12 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
 - **11-20 09:17: `codex-ms` 431 GB (+77), engine `tmp` 469 GB / 4.67M files, free disk 1,479 GB (−93).** The lane is on
   `wait57-cut.sh`. `~/.cache/wildshard` went from 108 to 124 GB. **Correction:** free disk is falling about 200 GB a
   day across everything, not just `codex-ms`, so the 1,000 GB floor is **about 2.5 days away (around 11-22)**, not 4–5.
+- **11-20 21:17: `codex-ms` 500 GB (+69), engine `tmp` 536 GB / 5.37M files (+700k), free disk 1,401 GB (−78).** The lane
+  has moved to release step 60 (`staging60-deploy-848f4c3c-1` 4.9 GB, `staging60-848f4c3c` 3.9 GB) and wrote 189 new
+  top-level entries in 12 h; steps 57–59 are still all on disk at about 4–5 GB each. No `release.sh` or `codex-ms` process
+  was running at 21:17. `engine-quickfix/tmp` went from 12 to 18 GB: `buddy-cook/engine` is a full engine copy with
+  `node_modules` (6.4 → 10.5 GB), and `dev-world` grew from 1.9 to 3.8 GB (a nine-dragon-stack dev server, last written
+  11:55). The floor is now about 2 days away at this rate.
 
 ## Decisions (Jake, 2026-10-15)
 
