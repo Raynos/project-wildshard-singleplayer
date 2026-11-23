@@ -559,6 +559,11 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   5.1–5.4 GB, and still keeps every older step. `engine-quickfix/tmp` held at 18 GB and gained a `.temp-janitor-stamp`
   (11-20 21:26), so a tmp janitor now runs there; none has reached `engine/tmp/codex-ms`. Free disk fell 140 GB in the
   last 24 h, so the 1,000 GB floor is about 2.5 days away (around 11-23).
+- **11-22 19:46: new 48 GB core dump, `/cores/core.93084` (11-21 19:21).** It is node v24.18.1 running
+  `wildshard/api-server` (paths in the dump: `api-server/src/server/http/status.ts`, its hono/valibot/tsyringe
+  `node_modules`). It crashed inside V8 garbage collection (`MarkCompactCollector::MarkLiveObjects` →
+  `ClearStaleLeftTrimmedPointerVisitor`); a 48 GB dump points to a runaway heap. `ulimit -c unlimited` in `~/.bashrc:12`
+  is why it was written. This check was stopped partway, so its log lines are incomplete.
 
 ## Decisions (Jake, 2026-10-15)
 
