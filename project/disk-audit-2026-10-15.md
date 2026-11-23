@@ -564,6 +564,13 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   `node_modules`). It crashed inside V8 garbage collection (`MarkCompactCollector::MarkLiveObjects` →
   `ClearStaleLeftTrimmedPointerVisitor`); a 48 GB dump points to a runaway heap. `ulimit -c unlimited` in `~/.bashrc:12`
   is why it was written. This check was stopped partway, so its log lines are incomplete.
+- **11-22 20:15: engine `tmp` 770 GB / 7.90M files (+179 GB, +1.9M since 11-21 09:17), free disk 1,105 GB (−234 in
+  35 h), about 1 day above the 1,000 GB floor.** `codex-ms` is 582 GB (+25) and 3,569 entries. Two new release-lane
+  copies passed 2 GB: `engine/tmp/r71` (30 GB, a full `engine/` checkout for release v0.1.72, last written 18:19) and
+  `codex-ms-release68` (19 GB `checkout/`, 03:35). The lane is live: `WS_LANE_NAME=codex-ms … repo-kit/release.sh
+  v0.34.2 --merge-back` was running at 20:2x. `/cores` still holds the 48 GB `core.93084`. Elsewhere: sharddev `tmp`
+  0.8 → 1.4 GB (`opus-compat-w1` 631 MB), pine-hollow worktrees 1.5 → 3.0 GB, `~/.cache/wildshard` 137 GB,
+  `node-compile-cache` 557 MB.
 
 ## Decisions (Jake, 2026-10-15)
 
