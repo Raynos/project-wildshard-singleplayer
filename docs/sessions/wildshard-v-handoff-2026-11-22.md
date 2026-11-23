@@ -41,6 +41,9 @@ Singleplayer is no longer where Wildshard is built.
     since 11-08, waiting on Jake's approval, J242).
 - **The code** is in the org repos (engine, sharddev, the shard repos, shard-format and others). Jake's list:
   `project-wildshard-meta/REPOS.md`.
+- On 11-22 Jake had the finished SHARD-PLATFORM successors archived (`4e548db8b5`): DOWNLOAD, OPEN-PLOTS,
+  TOOLING-PERF and the dead-code mini plan are now `project/archive/2026-11-22-*`. Meta's SINGLEPLAYER-DOCS-PLAN
+  still lists them for a copy into meta's archive.
 - `docs/plans/` in this repo is history. Its State lines were true when the code moved and have not been kept up
   since; never report progress from them.
 
@@ -53,7 +56,8 @@ Singleplayer is no longer where Wildshard is built.
   latest run 45063226304). Its `select` step parses an HTML page as JSON:
   `SyntaxError: Unexpected token '<', "<!doctype "... is not valid JSON`. It most likely fetches from the retired
   origin, which now returns the "Wildshard has moved" page. Nobody is shipping from this repo any more, so the fix
-  is probably to turn the schedule off as part of SINGLEPLAYER-LEFTOVERS; that is Jake's call (J242). Not fixed.
+  is probably to turn the schedule off. That work is queued as SINGLEPLAYER-LEFTOVERS SL4 ("the shell no longer
+  has a deploy/storage cron"), which waits on Jake's approval (J242). Not fixed.
 
 ## Standing rules from Jake that still apply
 
