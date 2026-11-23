@@ -1,6 +1,6 @@
 # SHARD-PLATFORM ready queue (coordinator-kept; Jake 2026-10-20: "we should reduce idle lanes")
 
-**Archived with SHARD-PLATFORM (CO8, 2026-11-04).** Open rows: C7 (plot walks and goldens) is OPEN-PLOTS OP23's; C12 (the DL17 legs review) moved to [DOWNLOAD's lane queue](../../../../docs/plans/download/STATE.md). The older tables below were already superseded by the current table.
+**Archived with SHARD-PLATFORM (CO8, 2026-11-04).** Open rows: C7 (plot walks and goldens) is OPEN-PLOTS OP23's; C12 (the DL17 legs review) moved to [DOWNLOAD's lane queue](../../2026-11-22-download/STATE.md). The older tables below were already superseded by the current table.
 
 A lane that finishes its task does not wait for a brief: it takes the TOP row of its type whose Taken cell is empty,
 claims it with a one-line pathspec commit to this file (`<lane> <HH:MM>`), sends `wildshard-new` one line, and starts.

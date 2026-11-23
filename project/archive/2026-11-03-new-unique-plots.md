@@ -1,6 +1,6 @@
 # New unique open plots: mini plan (E522, G970–G973)
 
-> **Archived 2026-11-03 (Jake: the four new plots go back into the open plots plan).** Themes, mockups and the open rows now live in [OPEN-PLOTS](../../docs/plans/OPEN-PLOTS.md) §4b, OP7 / OP9 / OP13 / OP21 / OP25.
+> **Archived 2026-11-03 (Jake: the four new plots go back into the open plots plan).** Themes, mockups and the open rows now live in [OPEN-PLOTS](2026-11-22-open-plots.md) §4b, OP7 / OP9 / OP13 / OP21 / OP25.
 
 > **Re-pointed 2026-11-02 to the tile approach and the round-75 boards (G978).** Jake: *"We need the 2x2 mockup for …
 > all the new open plot zones we just approved. Feel free to change the theme and style and colors … the open plots
@@ -29,7 +29,7 @@ public mode. I don't want two different grids."* · *"Showcase template is going
 you just need to come up with a theme and some mock-ups."*
 
 Sibling: [archived build-out](../../../project/archive/2026-11-03-open-plots-build-out.md) (the per-plot pipeline; another lane is writing it).
-Parent: [OPEN-PLOTS](../OPEN-PLOTS.md) (parked). Read at HEAD `d795fa9dfe`.
+Parent: [OPEN-PLOTS](2026-11-22-open-plots.md) (parked). Read at HEAD `d795fa9dfe`.
 
 ## 1. Why Lantern Bayou was there twice
 

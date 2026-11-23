@@ -1,20 +1,20 @@
 # Plan: TOOLING-PERF — the CI, tooling, build, TypeScript, lint and test mega audit
 
-**State:** `in progress` 2026-10-31 for the Codex lanes (G964, Jake: "tooling perf … great for the Codex lanes"; was `parked`, G659) — a draft in the same bucket as SHARD-PLATFORM-NEXT and WASM-HOST: nothing is worked until Jake says when; its picks (G657) are recorded. The zoomed-in mini plans it links (TypeScript, oxlint, no binaries in JSON, generators) are not parked: they run as SHARD-PLATFORM extras (G647). 2026-10-23 — G651 audit done (plan-agent subagent, from 7 days of GitHub runs, 147 red-run logs,
+**State:** `archived 2026-11-22 (superseded)`: singleplayer's tooling retired when the code moved to the org repos (J189); meta's DEV-SPEED and TEST-SPEED plans own speed now (meta SINGLEPLAYER-DOCS-PLAN). Was: `in progress` 2026-10-31 for the Codex lanes (G964).
 `.git/push.log`, the hooks, workflows and every check script; cheap checks timed at load ~30, the rest marked est.).
 Nothing is worked here until Jake says go; decided SHARD-PLATFORM tooling rows (G609, G610/G612, G620, G627, G628, G634,
-G636) keep landing there and move here when it starts; decisions stay in [decisions.md](decisions.md);
-absorbs [BUILD-SPEED](../../project/archive/2026-10-28-build-speed.md) waves 3–5. Jake, G651: *"the tooling perf is everything else. Like, everything that
+G636) keep landing there and move here when it starts; decisions stay in [decisions.md](../../docs/plans/decisions.md);
+absorbs [BUILD-SPEED](2026-10-28-build-speed.md) waves 3–5. Jake, G651: *"the tooling perf is everything else. Like, everything that
 I don't know about yet … all the things that we should be running in pre-commit if they were fast, all the things that we
 should be running in pre-push if they were fast."*
 
 ## Separate plans it links to (G647, never copied here)
 
-[TypeScript speed](../../project/archive/2026-10-27-typescript-speed.md) + [quick wins](../../project/archive/2026-10-26-typescript-quick-wins.md) and
-[oxlint speed](../../project/archive/2026-10-27-oxlint.md) (done 10-27; R4 folded into generators GR12, G796); [no binaries in JSON](../../project/archive/2026-10-27-no-binaries-in-json.md)
-(done 10-27, G649; B5 folded into GR6–GR8, G796); [generators spike / redesign](../../project/archive/2026-10-27-generators-spike.md) (done, G815–G817; archived); [`pnpm gen` speed](../../project/archive/2026-10-27-gen-speed.md)
-(done 10-27; G1 / G6 / G8 folded into GR12, G796); [lint and typecheck speed](../../project/archive/2026-10-29-lint-speed.md)
-(done 10-29, G872: measured partials accepted; plugin caches, one `tsc -b`, one CI lint job); [fail fast](../../project/archive/2026-10-27-fail-fast.md) and G627/G628/G636
+[TypeScript speed](2026-10-27-typescript-speed.md) + [quick wins](2026-10-26-typescript-quick-wins.md) and
+[oxlint speed](2026-10-27-oxlint.md) (done 10-27; R4 folded into generators GR12, G796); [no binaries in JSON](2026-10-27-no-binaries-in-json.md)
+(done 10-27, G649; B5 folded into GR6–GR8, G796); [generators spike / redesign](2026-10-27-generators-spike.md) (done, G815–G817; archived); [`pnpm gen` speed](2026-10-27-gen-speed.md)
+(done 10-27; G1 / G6 / G8 folded into GR12, G796); [lint and typecheck speed](2026-10-29-lint-speed.md)
+(done 10-29, G872: measured partials accepted; plugin caches, one `tsc -b`, one CI lint job); [fail fast](2026-10-27-fail-fast.md) and G627/G628/G636
 (building under SHARD-PLATFORM).
 
 ## What we know (2026-10-23)
@@ -73,7 +73,7 @@ should be running in pre-push if they were fast."*
 ### C. Lint and policies
 
 - **oxlint 1.83:** all seven categories at `error`, **nursery** included → **~420 built-in rules**, 54 type-aware (91 off,
-  10 configured). Speed is the [oxlint plan](../../project/archive/2026-10-27-oxlint.md)'s (archived; R4 lives in generators GR12); nursery at `error` lets an upgrade turn
+  10 configured). Speed is the [oxlint plan](2026-10-27-oxlint.md)'s (archived; R4 lives in generators GR12); nursery at `error` lets an upgrade turn
   main red with no code change (L4).
 - **`wildshard/*`, 40 custom rules** (1,121 + 1,368 lines): 30 `error` in `src/**`, 1 in tests, 4 `off` but counted, and
   **5 only in `.oxlintrc.ratchet.json`** (`public-index`, `no-raw-random-time`, `shard-sandbox`, `shard-services`,

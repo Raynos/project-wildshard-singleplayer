@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `archived 2026-11-04 (finished 2026-11-04)` — CO8 (G824, G1005, G1009; coordinator wildshard-new under G872). The done-when below (G604, G624) closed as: every shard at **0 custom TypeScript** (G693, latched); **all 10 grid-ready** (Nalati closed unreachable, G828); loading closed with its accepted misses (G831) and carried on by [DOWNLOAD](../../docs/plans/DOWNLOAD.md) (the runtime build, G1000; it left this plan as its own live plan at the archive); open plots continue in [OPEN-PLOTS](../../docs/plans/OPEN-PLOTS.md) (G990, G1009); Jake's phone QA passed, Nine last (G1005); the legacy folders and the TSL runtime are deleted (QD7: LD5–LD10 slice 1 and NF18; the LD10 tail is on [BURN-DAMAGE-LIST](../../docs/plans/BURN-DAMAGE-LIST.md) "LD10 tail"). Every row still reading open below was ruled at the archive: see [Archive dispositions (CO8)](#archive-dispositions-co8-2026-11-04). The final coordinator record is [STATE.md](2026-11-04-shard-platform/STATE.md); the State history is [history.md](2026-11-04-shard-platform/history.md).
+**State:** `archived 2026-11-04 (finished 2026-11-04)` — CO8 (G824, G1005, G1009; coordinator wildshard-new under G872). The done-when below (G604, G624) closed as: every shard at **0 custom TypeScript** (G693, latched); **all 10 grid-ready** (Nalati closed unreachable, G828); loading closed with its accepted misses (G831) and carried on by [DOWNLOAD](2026-11-22-download.md) (the runtime build, G1000; it left this plan as its own live plan at the archive); open plots continue in [OPEN-PLOTS](2026-11-22-open-plots.md) (G990, G1009); Jake's phone QA passed, Nine last (G1005); the legacy folders and the TSL runtime are deleted (QD7: LD5–LD10 slice 1 and NF18; the LD10 tail is on [BURN-DAMAGE-LIST](../../docs/plans/BURN-DAMAGE-LIST.md) "LD10 tail"). Every row still reading open below was ruled at the archive: see [Archive dispositions (CO8)](#archive-dispositions-co8-2026-11-04). The final coordinator record is [STATE.md](2026-11-04-shard-platform/STATE.md); the State history is [history.md](2026-11-04-shard-platform/history.md).
 **Was:** `in progress`, worked in waves (G403–G408) toward zero custom TypeScript (G604), then grid-ready, then Jake's phone QA, then the legacy deletion on his word.
 
 **Reviews:** [Wildshard MMO Review](../../docs/reviews/wildshard-mmo-review.md) (the clean-room audits, E435); [SHARD-PLATFORM mockups](../../docs/reviews/shard-platform-mockups.md) (Jake's E438 picks G72–G107, boards in `art/`).
@@ -12,7 +12,7 @@ dropped at the archive goes to the destination below. The coordinator ruled them
 
 | Rows | Destination | Why |
 |---|---|---|
-| download mini plan DL0–DL24 (13 open: DL1, DL2, DL5, DL6, DL7, DL10, DL11, DL15, DL18, DL20–DL24) | **moved, live:** [DOWNLOAD](../../docs/plans/DOWNLOAD.md), State [download/STATE.md](../../docs/plans/download/STATE.md) | G1000 / G1001 / G1006 / G1008; Jake G1009 keeps download running |
+| download mini plan DL0–DL24 (13 open: DL1, DL2, DL5, DL6, DL7, DL10, DL11, DL15, DL18, DL20–DL24) | **moved, live:** [DOWNLOAD](2026-11-22-download.md), State [download/STATE.md](2026-11-22-download/STATE.md) | G1000 / G1001 / G1006 / G1008; Jake G1009 keeps download running |
 | QD7 (qa 11-03) and close-out CO8 | **done** (this archive commit) | QD7's done-when is this archive; LD5–LD10 slice 1, NF18 and CO7 landed first |
 | LD5–LD8 cells still reading "Nine remains / retained" | **done** (QD7: `d3143de1cf`, `1d4f2e2fe3`, `af33359def`, `880c17d3fb`, `dcb1ef7d3d`) | marked in legacy-deletion at the archive |
 | LD10 remainder | **folded into BURN-DAMAGE-LIST "LD10 tail"** (already there) | G872 coordinator ruling at LD10 slice 1 |
@@ -27,7 +27,7 @@ dropped at the archive goes to the destination below. The coordinator ruled them
 | rows.md SF78 no second SDK, no wrappers | **folded into SHARD-PLATFORM-NEXT N4** | the engine and game quality pass |
 | rows.md SF72 renderer-free runtime installers | **superseded by** LD9 (one client-plan boot) and SHARD-PLATFORM-NEXT N5 | the plugin plumbing it targeted is retired |
 | rows.md SF53 Thin Ice | **superseded by** [THIN-ICE](../../docs/plans/THIN-ICE.md) | its own plan |
-| rows.md SF88d / SF88g (billboard plots, the open-plots shard) | **superseded by** [OPEN-PLOTS](../../docs/plans/OPEN-PLOTS.md) (G990) | every plot is being built there |
+| rows.md SF88d / SF88g (billboard plots, the open-plots shard) | **superseded by** [OPEN-PLOTS](2026-11-22-open-plots.md) (G990) | every plot is being built there |
 | every other row of §4 / rows.md / design-system.md / open-x-queue / lanes still reading open (SP3, SF8c–SF38, SF46–SF52, SF55–SF57, SF59–SF68, SF70–SF71, SF73–SF77, SF79–SF86, SF88a–SF88c, SF88e–SF88f, W1-M0, W1-C1–C9, the DIR / BR / design phase rows, open-x-queue H1 / H3 / W2a–W3b / Z1 / N3D / PF1 / CM1 / PC9 / KP1 / Part D, sim-queue S8) | **superseded by** the done-when of G604 / G624 | the 80/20 Part A route was replaced by zero custom lines (G604), reached (G693); grid-ready 10/10 (G828); memory per shard 1.2 GB (G534, G556, so G433's return to 1.0 GB is void); the legacy is deleted (QD7) |
 | sim-queue S9 (Wasm boundary benchmark) | **folded into WASM-HOST H0** | WASM-HOST is parked (G1009) |
 | ready-queue C7 (plot walks + goldens), C12 (DL17 legs review) | **folded into** OPEN-PLOTS OP23 and DOWNLOAD (its STATE lane queue) | the two live queues |
@@ -76,7 +76,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | Mini plan / spike | Decisions | State |
 |---|---|---|
 | [qa 11-03](2026-11-04-shard-platform/qa-2026-11-03-mini-plan.md) (Jake's Nine QA: missing walls and floors, train fps, neon streaks, golden set; then the close) | G995–G997 | **done** 11-04: QD1–QD12; QD7 closes with this archive (CO8) |
-| [download](../../docs/plans/DOWNLOAD.md) (a runtime build from the shardfile: whole level in ≤ 10 requests, loading work moved to build time and workers, complete at control; Opus-only; E525) | G1000, G1001 | **moved out, live** 11-04: its own plan, [DOWNLOAD](../../docs/plans/DOWNLOAD.md) (CO8, G1009) |
+| [download](2026-11-22-download.md) (a runtime build from the shardfile: whole level in ≤ 10 requests, loading work moved to build time and workers, complete at control; Opus-only; E525) | G1000, G1001 | **moved out, live** 11-04: its own plan, [DOWNLOAD](2026-11-22-download.md) (CO8, G1009) |
 | [dw-pine-zero](2026-10-27-dw-pine-zero.md), [quest-host](2026-10-27-quest-host.md) | G564–G573, G589 | **done**: Pine and Driftwood at 0 |
 | [nine-nalati-zero](2026-10-27-nine-nalati-zero.md) + the Nine / Nalati / C1C5C6 picks pages | G592, G597–G603, G614 | **Nine done** (0, grid-ready); Nalati continues in nalati-zero |
 | [c1-c5-c6-zero](2026-10-27-c1-c5-c6-zero.md) (+ C2, G613) | G591, G593, G601, G613 | C1, C2, C5 closed and locked; **C6 8 lines left** (with the balbal cut) |
@@ -120,7 +120,7 @@ plan? … what is in scope … and what do we all have to complete to be done?"*
 | [js-payload](2026-10-27-js-payload.md) (draft, for Jake) | E500 | **draft** 10-24: J1–J10, biggest first: grid seam plans out of JS, title diet, shard entry diet, shard isolation; D1–D4 for Jake |
 | [iphone-downloads](2026-10-28-iphone-downloads.md) (draft, for Jake) | E504 | **draft** 10-24: cold DW shardfile entry 1,021 req / 52.6 MB wire, all before control; I1–I12 (tier filter = L18, spawn-first, quantised geometry, UASTC RDO, packs, immutable blob headers, budgets guard); D1–D4 for Jake |
 
-**Out of scope here (their own plans, after this one):** [TOOLING-PERF](../../docs/plans/TOOLING-PERF.md) (parked draft, G659), [HOST-AUDIT](../../docs/plans/HOST-AUDIT.md) (starts after every shard is at
+**Out of scope here (their own plans, after this one):** [TOOLING-PERF](2026-11-22-tooling-perf.md) (parked draft, G659), [HOST-AUDIT](../../docs/plans/HOST-AUDIT.md) (starts after every shard is at
 zero, G596), [BURN-DAMAGE-LIST](../../docs/plans/BURN-DAMAGE-LIST.md) (parked draft: the mega build's damage list, G769),
 SHARD-PLATFORM-NEXT, WASM-HOST beyond its zero blockers.
 

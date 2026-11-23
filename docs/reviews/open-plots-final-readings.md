@@ -1,7 +1,7 @@
 # Final readings for the ten remaining open plots
 
 **Status:** `done` (2026-11-04, sp-x1 + sp-x8), **10/10 fully qualified; C/control and memory/official measured on 10/10**.
-**Plan:** [OPEN-PLOTS](../plans/OPEN-PLOTS.md).
+**Plan:** [OPEN-PLOTS](../../project/archive/2026-11-22-open-plots.md).
 
 Sp-x1 owns matched Chromium plus Night Market control, the maintained walk,
 and the eight-view golden bridge. Sp-x8 completed separate Chromium memory
