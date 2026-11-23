@@ -47,8 +47,8 @@ Singleplayer is no longer where Wildshard is built.
 ## What is still going on in this repo
 
 - **Disk-audit commits.** Another session appends readings to `project/disk-audit-2026-10-15.md` (`docs(disk): …`,
-  twice a day). Nine of them (`ceafe55504`, 11-17, to `cca54d3cf7`, 11-22) are local on `main` and not on
-  `origin/main`, which stops at `8c56c4616b`. They are not this session's; ask Jake before pushing them.
+  twice a day). Nine of them (`ceafe55504`, 11-17, to `cca54d3cf7`, 11-22) sat unpushed until Jake asked for a
+  push on 11-22; they went out with this handoff and the merge `00734d4df6`.
 - **The scheduled `release-train` workflow has failed every run since 2026-11-12** (32 of 32 in the last listing;
   latest run 45063226304). Its `select` step parses an HTML page as JSON:
   `SyntaxError: Unexpected token '<', "<!doctype "... is not valid JSON`. It most likely fetches from the retired
